@@ -1,0 +1,38 @@
+Partlist
+
+Exported from Wilssen_core_v0.201a.brd at 29.11.2012 00:44:02
+
+EAGLE Version 6.3.0 Copyright (c) 1988-2012 CadSoft
+
+Assembly variant: 
+
+Part                Value               Package   Library             Position (inch)       Orientation
+
+ATMEGA168/ATMEGA328 MEGA8-MI            MLF32     atmel               (0.5 0.825)           R270
+C1                  10uF                EIA3216   SparkFun            (0.5 1.35)            R90
+C2                  0.1uF               0805      SparkFun            (0.5 1.095)           R90
+C4                  0.1uF               0805      SparkFun            (0.5 0.1)             R180
+C5                  22nF                0805      SparkFun            (0.775 1.275)         R90
+C6                  22nF                0805      SparkFun            (0.225 1.275)         R270
+C9                  1.0uF               0402-CAP  SparkFun            (0.5 1.8)             R180
+C10                 1.0uF               0402-CAP  SparkFun            (0.5 1.75)            R0
+D1                  Red                 LED-0603  SparkFun            (0.5 0.05)            R270
+D4                  Yellow              LED-0603  SparkFun            (0.5 1.625)           R90
+JP1                 M14                 1X14      SparkFun            (0.05 1.35)           R270
+JP2                                     1X02      SparkFun            (0.575 2.1)           MR180
+JP3                                     S2B-PH    SparkFun            (1.87 2.475)          R0
+JP4                 AVR_SPI             2X3       SparkFun            (0.45 0.525)          R270
+JP6                                     1X02      SparkFun            (0.325 2.1)           MR180
+JP8                                     1X08      SparkFun-Connectors (0.95 0.05)           R90
+JP9                                     1X06      SparkFun-Connectors (0.95 0.85)           R90
+Q1                  8Mhz                SM49      crystal             (0.5 1.175)           R0
+R1                  1k                  0805      SparkFun            (0.325 0.05)          R0
+R2                  470k                R0805     rcl                 (0.5 0.175)           R180
+R3                  1M                  R0805     rcl                 (0.5 1.525)           R0
+R4                  10k                 1206      SparkFun            (0.65 0.45)           R90
+R5                  3R3                 R1206     rcl                 (0.3 0.425)           R180
+R9                  1k                  0402-RES  SparkFun            (0.5 1.7)             R180
+U1                  MAX1555             SOT23-5   SparkFun            (0.375 1.95)          R270
+U2                  3.3V                SOT23-5   SparkFun            (0.625 1.95)          R90
+U3                  ATMEGA168/ATMEGA328 TQFP32-08 SparkFun            (0.4996063 0.8253937) R270
+X1                  USBSMD              USB-MINIB SparkFun            (0.505 2.35)          R270

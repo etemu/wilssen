@@ -1,0 +1,193 @@
+Pinlist
+
+Exported from Wilssen_core_v0.201a.brd at 29.11.2012 00:44:35
+
+EAGLE Version 6.3.0 Copyright (c) 1988-2012 CadSoft
+
+Part     Pad      Net
+
+ATMEGA168/ATMEGA328 1        D3
+         10       D6
+         11       D7
+         12       D8
+         13       D9
+         14       D10
+         15       MOSI
+         16       MISO
+         17       SCK
+         18       VCC
+         19       A6
+         2        D4
+         20       VCC
+         21       GND
+         22       A7
+         23       A0
+         24       A1
+         25       A2
+         26       A3
+         27       A4
+         28       A5
+         29       RST1
+         3        GND
+         30       RXI
+         31       TXO
+         32       D2
+         4        VCC
+         5        GND
+         6        VCC
+         7        XTAL1
+         8        XTAL2
+         9        D5
+
+C1       A        VCC
+         C        GND
+
+C2       1        VCC
+         2        GND
+
+C4       1        GND
+         2        A0
+
+C5       1        GND
+         2        XTAL1
+
+C6       1        GND
+         2        XTAL2
+
+C9       1        USB_VIN
+         2        GND
+
+C10      1        VBATT
+         2        GND
+
+D1       A        N$2
+         C        GND
+
+D4       A        VBATT
+         C        N$8
+
+JP1      1        VCC
+         10       D9
+         11       D10
+         12       MOSI
+         13       MISO
+         14       SCK
+         2        GND
+         3        D2
+         4        D3
+         5        D4
+         6        D5
+         7        D6
+         8        D7
+         9        D8
+
+JP2      1        GND
+         2        VBATT
+
+JP3      1        GND
+         2        VBATT
+         NC1               *** unconnected ***
+         NC2               *** unconnected ***
+
+JP4      1        MISO
+         2        VCC
+         3        SCK
+         4        N$1
+         5        RST
+         6        GND
+
+JP6      1        GND
+         2        USB_VIN
+
+JP8      1        A0
+         2        A1
+         3        A2
+         4        A3
+         5        A4
+         6        A5
+         7        A6
+         8        A7
+
+JP9      1        GND
+         2        AREF
+         3        VCC
+         4        RXI
+         5        TXO
+         6        DTR
+
+Q1       1        XTAL2
+         2        XTAL1
+
+R1       1        SCK
+         2        N$2
+
+R2       1        GND
+         2        A0
+
+R3       1        A0
+         2        VBATT
+
+R4       1        RST
+         2        VCC
+
+R5       1        N$1
+         2        MOSI
+
+R9       1        N$11
+         2        N$8
+
+U1       1                 *** unconnected ***
+         2        GND
+         3        N$11
+         4        USB_VIN
+         5        VBATT
+
+U2       1        VBATT
+         2        GND
+         3        VBATT
+         4                 *** unconnected ***
+         5        VCC
+
+U3       1        D3
+         10       D6
+         11       D7
+         12       D8
+         13       D9
+         14       D10
+         15       MOSI
+         16       MISO
+         17       SCK
+         18       VCC
+         19       A6
+         2        D4
+         20                *** unconnected ***
+         21       GND
+         22       A7
+         23       A0
+         24       A1
+         25       A2
+         26       A3
+         27       A4
+         28       A5
+         29       RST
+         3        GND
+         30       RXI
+         31       TXO
+         32       D2
+         4        VCC
+         5        GND
+         6        VCC
+         7        XTAL1
+         8        XTAL2
+         9        D5
+
+X1       D+                *** unconnected ***
+         D-                *** unconnected ***
+         GND      GND
+         GND@1             *** unconnected ***
+         GND@2             *** unconnected ***
+         GND@3             *** unconnected ***
+         GND@4             *** unconnected ***
+         ID                *** unconnected ***
+         VBUS     USB_VIN
+
