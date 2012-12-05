@@ -1,12 +1,13 @@
-
 #ifndef RGBlink_h //Avoid including this lib twice
 #define RGBlink_h
 
-#if defined(ARDUINO) && ARDUINO >= 100
+#if defined(ARDUINO) && ARDUINO >= 100 //check if using Arduino or Wiring
   #include "Arduino.h"
 #else
   #include "WProgram.h"
 #endif
+
+//predefined colors
 
 #define red 	255,000,000
 #define green 	000,255,000
