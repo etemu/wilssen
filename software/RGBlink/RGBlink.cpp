@@ -1,6 +1,4 @@
-
-
-#if defined(ARDUINO) && ARDUINO >= 100
+#if defined(ARDUINO) && ARDUINO >= 100 //check if using Arduino or Wiring
   #include "Arduino.h"
 #else
   #include "WProgram.h"
