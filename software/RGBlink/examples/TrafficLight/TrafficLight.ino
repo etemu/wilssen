@@ -9,7 +9,7 @@ void setup()   {
 
 void loop()                     
 {
-  //there are various presaved colors like red, green, yellow, blue and white
+  //there are various predefined colors like red, green, yellow, blue and white
   led.setColor(red);
   delay(1000);
   led.setColor(yellow);
