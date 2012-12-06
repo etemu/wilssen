@@ -2,6 +2,7 @@
 
 //define your RGB-LED like this:
 // LED led(red_pin,green_pin,blue_pin);
+//pins have to be PWM capable.
 LED led(11,9,10);
 
 void setup()   {                
