@@ -1,5 +1,13 @@
-LED	KEYWORD1
-on	KEYWORD2
-off	KEYWORD2
+LED		KEYWORD1
+
+on		KEYWORD2
+off		KEYWORD2
+update	KEYWORD2
+setMode	KEYWORD2
+getMode	KEYWORD2
+
 setColor	KEYWORD2
+setBlink	KEYWORD2
 selftest	KEYWORD2
+
+initDefaults	KEYWORD2

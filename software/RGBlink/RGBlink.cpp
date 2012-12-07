@@ -6,83 +6,118 @@
 
 #include "RGBlink.h"
 
-LED::LED(int r_pin,int g_pin,int b_pin)
+/* 
+ * Modes:
+ * 0 Color
+ * 1 Pattern
+ * 2 Heartbeat
+ */
+
+/***************************
+ * Initialization
+ ***************************/
+
+LED::LED(int _r_pin,int _g_pin,int _b_pin)
 {
-	pinMode(r_pin, OUTPUT);
-	pinMode(g_pin, OUTPUT);
-	pinMode(b_pin, OUTPUT);
-
-	pins[0] = r_pin;
-	pins[1] = g_pin;
-	pins[2] = b_pin;
-
-	isOn = true;
+	int pins[3] = {_r_pin,_g_pin,_b_pin};
+	/*
+	pins[0] = _r_pin;
+	pins[1] = _g_pin;
+	pins[2] = _b_pin;
+    */
+    for (int i = 0; i < 3; ++i)
+    	pinMode(pins[i], OUTPUT);
+    
+    initDefaults();
 }
+
+void LED::initDefaults()
+{
+	isOn = true;
+	setColor(white);
+    
+    blink = {1000,1000}; //default blink delay (1 sec on, 1 sec off)
+
+	frame_i = 0;
+	mode = 1;
+
+	prevMillis = 0;
+}
+
+/***************************
+ * Basic operations
+ ***************************/
 
 void LED::on()
 {
 	isOn = true;
 	for (int i = 0; i < 3; ++i)
-	{
 		analogWrite(pins[i],color[i]);
-	}
 }
 
 void LED::off()
 {
 	isOn = false;
 	for (int i = 0; i < 3; ++i)
+		analogWrite(pins[i],0);
+}
+
+void LED::selftest()  //TODO: change this to create a pattern
+{
+	//loop trough all colors maybe?	
+}
+
+/***************************
+ * update cycle for patterns
+ ***************************/
+
+void LED::update()
+{
+	switch(mode)
 	{
-		digitalWrite(pins[i],0);
+		case 1:
+			unsigned long currentMillis = millis();
+		   	if(currentMillis - prevMillis >= blink[(int)isOn])  // a boolean 'true' equals '1', 'false' equals '0'
+		   	{
+		   		if (isOn)
+		   			off();
+		   		else
+		   			on();
+
+		   		prevMillis = currentMillis;
+		   	}
+
+		break;	
+
+		//default:
+	    	//do nothing
 	}
 }
 
-void LED::setColor(int r_val, int g_val, int b_val)
+/***************************
+ *	Setter/Getter methods
+ ***************************/
+
+ void LED::setBlink(int _on_val, int _off_val)
 {
-	color[0] = r_val;
-	color[1] = g_val;
-	color[2] = b_val;	
+	blink = {_off_val,_on_val};
+}
+
+void LED::setColor(int _r_val, int _g_val, int _b_val)
+{
+	color[0] = _r_val;
+	color[1] = _g_val;
+	color[2] = _b_val;	
 	if (isOn)
 		on();
 }
 
-
-void LED::selftest()
+void LED::setMode(int _mode)
 {
-	for (int i = 0; i < 255; ++i)
-	{
-		setColor(255,i,0);
-		on();
-		delay(5);
-	}
-	for (int i = 0; i < 255; ++i)
-	{
-		setColor(255-i,255,0);
-		on();
-		delay(5);
-	}
-	for (int i = 0; i < 255; ++i)
-	{
-		setColor(0,255,i);
-		on();
-		delay(5);
-	}
-	for (int i = 0; i < 255; ++i)
-	{
-		setColor(0,255-i,255);
-		on();
-		delay(5);
-	}
-	for (int i = 0; i < 255; ++i)
-	{
-		setColor(i,0,255);
-		on();
-		delay(5);
-	}
-	for (int i = 0; i < 255; ++i)
-	{
-		setColor(255,0,255-i);
-		on();
-		delay(5);
-	}		
+	mode = _mode;
+}
+
+int LED::getMode()
+{
+	return mode;
 }
