@@ -17,38 +17,29 @@
 #define white 	255,255,255
 #define black	000,000,000
 
-/* struct to store frame data for patterns, currently not needed
-typedef struct { 
-	int r;
-	int g;
-	int b;
-	int t;
-} frame;
-*/
-
 class LED // main class
 {
 	public:
-		LED(int _r_pin,int _g_pin,int _b_pin);	
+		LED(uint8_t to_red_pin,uint8_t to_green_pin,uint8_t to_blue_pin);	
 
 		void on();
 		void off();
 		
-		void selftest();
+		//void selftest();
 		void update();	
 
 		void initDefaults();	
 
-		void setColor(int _r_val, int _g_val, int _b_val);
-		void setBlink(int _on_val,int _off_val);
-		void setMode(int _mode);
+		void setColor(uint8_t to_red_val, uint8_t to_green_val, uint8_t to_blue_val);
+		void setBlink(unsigned long to_on_val, unsigned long tooff_val);
+		void setMode(uint8_t to_mode);
 		int getMode();
 	private:
-		extern int pins[3];	// used Arduino Pins
-		extern int color[3]; 	// color buffer {red, green, blue}
-		extern int blink[2];	
+		uint8_t red_pin, green_pin, blue_pin;	// used Arduino Pins
+		uint8_t red_val, green_val, blue_val; 	// color buffer {red, green, blue}
+		unsigned long blink_on, blink_off;
 
-		int mode;
+		uint8_t mode;
 		bool isOn;	
 
 		unsigned long prevMillis; // store the last mills();

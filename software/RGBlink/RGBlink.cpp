@@ -17,16 +17,11 @@
  * Initialization
  ***************************/
 
-LED::LED(int _r_pin,int _g_pin,int _b_pin)
+LED::LED(uint8_t to_red_pin,uint8_t to_green_pin,uint8_t to_blue_pin)
 {
-	int pins[3] = {_r_pin,_g_pin,_b_pin};
-	/*
-	pins[0] = _r_pin;
-	pins[1] = _g_pin;
-	pins[2] = _b_pin;
-    */
-    for (int i = 0; i < 3; ++i)
-    	pinMode(pins[i], OUTPUT);
+	red_pin = to_red_pin;
+	green_pin = to_green_pin;
+	blue_pin = to_blue_pin;
     
     initDefaults();
 }
@@ -36,10 +31,9 @@ void LED::initDefaults()
 	isOn = true;
 	setColor(white);
     
-    blink = {1000,1000}; //default blink delay (1 sec on, 1 sec off)
-
-	frame_i = 0;
-	mode = 1;
+	blink_on = 1000;  // basic blink pattern (1 sec off/1 sec on)
+	blink_off = 1000;
+	mode = 0;
 
 	prevMillis = 0;
 }
@@ -51,22 +45,27 @@ void LED::initDefaults()
 void LED::on()
 {
 	isOn = true;
-	for (int i = 0; i < 3; ++i)
-		analogWrite(pins[i],color[i]);
+
+	analogWrite(red_pin, red_val);
+	analogWrite(green_pin, green_val);
+	analogWrite(blue_pin, blue_val);
+
 }
 
 void LED::off()
 {
 	isOn = false;
-	for (int i = 0; i < 3; ++i)
-		analogWrite(pins[i],0);
-}
 
+	analogWrite(red_pin, 0);
+	analogWrite(green_pin, 0);
+	analogWrite(blue_pin, 0);
+}
+/* TODO: reimplement
 void LED::selftest()  //TODO: change this to create a pattern
 {
 	//loop trough all colors maybe?	
 }
-
+*/
 /***************************
  * update cycle for patterns
  ***************************/
@@ -77,13 +76,16 @@ void LED::update()
 	{
 		case 1:
 			unsigned long currentMillis = millis();
-		   	if(currentMillis - prevMillis >= blink[(int)isOn])  // a boolean 'true' equals '1', 'false' equals '0'
-		   	{
-		   		if (isOn)
-		   			off();
-		   		else
-		   			on();
 
+		   	if(isOn && (currentMillis - prevMillis) >= blink_on)//blink_on)  // a boolean 'true' equals '1', 'false' equals '0'
+		   	{
+		   		off();
+		   		prevMillis = currentMillis;
+		   	}
+
+		   	else if(!isOn && (currentMillis - prevMillis) >= blink_off)//blink_off)  // a boolean 'true' equals '1', 'false' equals '0'
+		   	{
+		   		on();
 		   		prevMillis = currentMillis;
 		   	}
 
@@ -98,23 +100,23 @@ void LED::update()
  *	Setter/Getter methods
  ***************************/
 
- void LED::setBlink(int _on_val, int _off_val)
+ void LED::setBlink(unsigned long to_on_val, unsigned long to_off_val)
 {
-	blink = {_off_val,_on_val};
+	blink_off = to_off_val;
+	blink_on =	to_on_val;
 }
-
-void LED::setColor(int _r_val, int _g_val, int _b_val)
+void LED::setColor(uint8_t to_red_val, uint8_t to_green_val, uint8_t to_blue_val)
 {
-	color[0] = _r_val;
-	color[1] = _g_val;
-	color[2] = _b_val;	
-	if (isOn)
+	red_val	=	to_red_val;
+	green_val=	to_green_val;
+	blue_val =	to_blue_val;	
+	if (isOn) 
 		on();
 }
 
-void LED::setMode(int _mode)
+void LED::setMode(uint8_t to_mode)
 {
-	mode = _mode;
+	mode = to_mode;
 }
 
 int LED::getMode()
