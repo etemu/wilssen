@@ -17,6 +17,7 @@
  * Initialization
  ***************************/
 
+
 LED::LED(uint8_t to_red_pin,uint8_t to_green_pin,uint8_t to_blue_pin)
 {
 	red_pin = to_red_pin;
@@ -33,7 +34,7 @@ void LED::initDefaults()
     
 	blink_on = 1000;  // basic blink pattern (1 sec off/1 sec on)
 	blink_off = 1000;
-	mode = 0;
+	mode = 1;
 
 	prevMillis = 0;
 }
@@ -45,20 +46,13 @@ void LED::initDefaults()
 void LED::on()
 {
 	isOn = true;
-
-	analogWrite(red_pin, red_val_orig);
-	analogWrite(green_pin, green_val_orig);
-	analogWrite(blue_pin, blue_val_orig);
-
+	writeColor(color);
 }
 
 void LED::off()
 {
 	isOn = false;
-
-	analogWrite(red_pin, 0);
-	analogWrite(green_pin, 0);
-	analogWrite(blue_pin, 0);
+	writeColor(black);
 }
 /* TODO: reimplement
 void LED::selftest()  //TODO: change this to create a pattern
@@ -101,14 +95,16 @@ void LED::update()
 		   		float perc = (float)blink_diff / (float)blink_on;
 		   		if(perc >= 1)
 		   		{ 
-		   			off();
+		   			isOn = false;
 		   			prevMillis = currentMillis;
 		   		}
 		   		else
 		   		{
-		   			writeColor((uint8_t)(perc*red_val_orig),
-		   					   (uint8_t)(perc*green_val_orig),
-		   					   (uint8_t)(perc*blue_val_orig));
+		   			RGB newCol = {(uint8_t)(perc*color.red),
+		   					   	  (uint8_t)(perc*color.green),
+		   					   	  (uint8_t)(perc*color.blue)};
+
+		   			writeColor(newCol);
 		   		}
 		   	}
 
@@ -118,14 +114,16 @@ void LED::update()
 
 		   		if(perc >= 1)
 		   		{ 
-		   			on();
+		   			isOn = true;
 		   			prevMillis = currentMillis;
 		   		}
 		   		else
 		   		{
-		   			writeColor(red_val_orig-(uint8_t)(perc*red_val_orig),
-		   					   green_val_orig-(uint8_t)(perc*green_val_orig),
-		   					   blue_val_orig-(uint8_t)(perc*blue_val_orig));
+		   			RGB newCol = {color.red-(uint8_t)(perc*color.red),
+		   					   	  color.green-(uint8_t)(perc*color.green),
+		   					   	  color.blue-(uint8_t)(perc*color.blue)};
+
+		   			writeColor(newCol);
 		   		}
 		   		
 		   	}
@@ -148,25 +146,29 @@ void LED::update()
 	blink_on =	to_on_val;
 }
 
-void LED::writeColor(uint8_t to_red_val, uint8_t to_green_val, uint8_t to_blue_val)  // show a color w/out deleting the buffer, needed for fading
+void LED::writeColor(RGB to_color)  // show a color w/out deleting the buffer, needed for fading
 {
-	red_val_curr =	to_red_val;
-	green_val_curr = to_green_val;
-	blue_val_curr = to_blue_val;
 
-	analogWrite(red_pin, red_val_curr);
-	analogWrite(green_pin, green_val_curr);
-	analogWrite(blue_pin, blue_val_curr);	
+	if(gamma_correct)
+	{
+		analogWrite(red_pin, 	pgm_read_byte(&dim_curve[to_color.red]));
+		analogWrite(green_pin,	pgm_read_byte(&dim_curve[to_color.green]));
+		analogWrite(blue_pin, 	pgm_read_byte(&dim_curve[to_color.blue]));
+	}
+	else
+	{
+		analogWrite(red_pin, to_color.red);
+		analogWrite(green_pin, to_color.green);
+		analogWrite(blue_pin, to_color.blue);
+	}
+	
 }
 
-void LED::setColor(uint8_t to_red_val, uint8_t to_green_val, uint8_t to_blue_val)
+void LED::setColor(RGB to_color)
 {
-	red_val_orig =	to_red_val;
-	green_val_orig = to_green_val;
-	blue_val_orig = to_blue_val;
-
+	color = to_color;
 	if (isOn) 
-		on();
+		writeColor(color);
 }
 
 void LED::setMode(uint8_t to_mode)
@@ -177,4 +179,15 @@ void LED::setMode(uint8_t to_mode)
 int LED::getMode()
 {
 	return mode;
+}
+
+RGB mix(RGB color_1, RGB color_2, uint8_t step)
+{
+	float perc = (float)step/255;
+
+	RGB newCol = {(uint8_t)(perc*color_1.red)	+ (uint8_t)((1-perc)*color_2.red),
+		   		  (uint8_t)(perc*color_1.green)	+ (uint8_t)((1-perc)*color_2.green),
+		   		  (uint8_t)(perc*color_1.blue)	+ (uint8_t)((1-perc)*color_2.blue)};
+
+	return newCol;
 }
