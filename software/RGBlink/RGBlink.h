@@ -31,13 +31,15 @@ class LED // main class
 		void initDefaults();	
 
 		void setColor(uint8_t to_red_val, uint8_t to_green_val, uint8_t to_blue_val);
-		void setBlink(unsigned long to_on_val, unsigned long tooff_val);
+		void writeColor(uint8_t to_red_val, uint8_t to_green_val, uint8_t to_blue_val);
+		void setBlink(uint16_t to_on_val, uint16_t to_off_val);
 		void setMode(uint8_t to_mode);
 		int getMode();
 	private:
 		uint8_t red_pin, green_pin, blue_pin;	// used Arduino Pins
-		uint8_t red_val, green_val, blue_val; 	// color buffer {red, green, blue}
-		unsigned long blink_on, blink_off;
+		uint8_t red_val_orig, green_val_orig, blue_val_orig; 	// store main colors
+		uint8_t red_val_curr, green_val_curr, blue_val_curr; 	// store current color (while fading)
+		uint16_t blink_on, blink_off;
 
 		uint8_t mode;
 		bool isOn;	

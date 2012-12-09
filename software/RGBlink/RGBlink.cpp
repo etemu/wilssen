@@ -46,9 +46,9 @@ void LED::on()
 {
 	isOn = true;
 
-	analogWrite(red_pin, red_val);
-	analogWrite(green_pin, green_val);
-	analogWrite(blue_pin, blue_val);
+	analogWrite(red_pin, red_val_orig);
+	analogWrite(green_pin, green_val_orig);
+	analogWrite(blue_pin, blue_val_orig);
 
 }
 
@@ -73,23 +73,65 @@ void LED::selftest()  //TODO: change this to create a pattern
 void LED::update()
 {
 	switch(mode)
-	{
-		case 1:
+	{	
+		case 1: //blink
+		{
 			unsigned long currentMillis = millis();
-
-		   	if(isOn && (currentMillis - prevMillis) >= blink_on)//blink_on)  // a boolean 'true' equals '1', 'false' equals '0'
+		   	if(isOn && (uint16_t)(currentMillis - prevMillis) >= blink_on)//blink_on)  // a boolean 'true' equals '1', 'false' equals '0'
 		   	{
 		   		off();
 		   		prevMillis = currentMillis;
 		   	}
 
-		   	else if(!isOn && (currentMillis - prevMillis) >= blink_off)//blink_off)  // a boolean 'true' equals '1', 'false' equals '0'
+		   	else if(!isOn && (uint16_t)(currentMillis - prevMillis) >= blink_off)//blink_off)  // a boolean 'true' equals '1', 'false' equals '0'
 		   	{
 		   		on();
 		   		prevMillis = currentMillis;
 		   	}
+			break;
+		}	
 
-		break;	
+		case 2: //fade
+		{
+			unsigned long currentMillis = millis();
+			uint16_t blink_diff = (uint16_t)(currentMillis - prevMillis);
+
+			if(isOn)
+		   	{
+		   		float perc = (float)blink_diff / (float)blink_on;
+		   		if(perc >= 1)
+		   		{ 
+		   			off();
+		   			prevMillis = currentMillis;
+		   		}
+		   		else
+		   		{
+		   			writeColor((uint8_t)(perc*red_val_orig),
+		   					   (uint8_t)(perc*green_val_orig),
+		   					   (uint8_t)(perc*blue_val_orig));
+		   		}
+		   	}
+
+		   	else if(!isOn)
+		   	{
+		   		float perc = (float)blink_diff / (float)blink_off;
+
+		   		if(perc >= 1)
+		   		{ 
+		   			on();
+		   			prevMillis = currentMillis;
+		   		}
+		   		else
+		   		{
+		   			writeColor(red_val_orig-(uint8_t)(perc*red_val_orig),
+		   					   green_val_orig-(uint8_t)(perc*green_val_orig),
+		   					   blue_val_orig-(uint8_t)(perc*blue_val_orig));
+		   		}
+		   		
+		   	}
+		   	
+			break;	
+		}
 
 		//default:
 	    	//do nothing
@@ -100,16 +142,29 @@ void LED::update()
  *	Setter/Getter methods
  ***************************/
 
- void LED::setBlink(unsigned long to_on_val, unsigned long to_off_val)
+ void LED::setBlink(uint16_t to_on_val, uint16_t to_off_val)
 {
 	blink_off = to_off_val;
 	blink_on =	to_on_val;
 }
+
+void LED::writeColor(uint8_t to_red_val, uint8_t to_green_val, uint8_t to_blue_val)  // show a color w/out deleting the buffer, needed for fading
+{
+	red_val_curr =	to_red_val;
+	green_val_curr = to_green_val;
+	blue_val_curr = to_blue_val;
+
+	analogWrite(red_pin, red_val_curr);
+	analogWrite(green_pin, green_val_curr);
+	analogWrite(blue_pin, blue_val_curr);	
+}
+
 void LED::setColor(uint8_t to_red_val, uint8_t to_green_val, uint8_t to_blue_val)
 {
-	red_val	=	to_red_val;
-	green_val=	to_green_val;
-	blue_val =	to_blue_val;	
+	red_val_orig =	to_red_val;
+	green_val_orig = to_green_val;
+	blue_val_orig = to_blue_val;
+
 	if (isOn) 
 		on();
 }
