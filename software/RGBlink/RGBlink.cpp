@@ -167,7 +167,7 @@ void LED::writeColor(RGB to_color)  // show a color w/out deleting the buffer, n
 void LED::setColor(RGB to_color)
 {
 	color = to_color;
-	if (isOn) 
+	if (isOn && mode == 0) // prevent performance issues when fading while setting color 
 		writeColor(color);
 }
 
@@ -190,4 +190,80 @@ RGB mix(RGB color_1, RGB color_2, uint8_t step)
 		   		  (uint8_t)(perc*color_1.blue)	+ (uint8_t)((1-perc)*color_2.blue)};
 
 	return newCol;
+}
+
+RGB fromHSB(uint8_t hue, uint8_t sat, uint8_t val) { 
+	/*
+	 * Hue: 0..359
+	 * Sat: 0..255
+	 * Val: 0..255
+	 */
+	RGB result;
+ 	val = dim_curve[val];
+ 	sat = 255-dim_curve[255-sat];
+	uint8_t r, b, g, base;
+
+  	if (sat == 0) //Acromatic, hue not needed
+  	{ 
+    	result.red = val;
+	    result.green = val;
+	    result.blue = val; 
+	} 
+	else  
+	{ 
+		base = ((255 - sat) * val)>>8;
+
+	    switch(hue/60) 
+	    { 
+		    case 0:// 0..59
+		    {
+		        result.red = val;		
+		        result.green = (((val-base)*hue)/60)+base;		
+		        result.blue = base;		
+		    	break;
+			}
+
+		    case 1://60..119
+		    {
+		        result.red = (((val-base)*(60-(hue%60)))/60)+base;		
+		        result.green = val;		
+		        result.blue = base;		
+		    	break;
+		    }
+
+		    case 2://120..179
+		    {
+		        result.red = base;		
+		        result.green = val;		
+		        result.blue = (((val-base)*(hue%60))/60)+base;		
+		    	break;
+			}
+
+			case 3://180..239
+		    {
+		        result.red = base;		
+		        result.green = (((val-base)*(60-(hue%60)))/60)+base;		
+		        result.blue = val;		
+		    	break;
+		    }
+
+			case 4://240..299
+		    {
+		        result.red = (((val-base)*(hue%60))/60)+base;		
+		        result.green = base;		
+		        result.blue = val;		
+		    	break;
+		    }
+
+			case 5://300..359
+		    {
+		        result.red = val;		
+		        result.green = base;		
+		        result.blue = (((val-base)*(60-(hue%60)))/60)+base;		
+		    	break;
+		    }		
+
+		}
+	}   
+	return result;
 }
