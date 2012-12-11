@@ -80,5 +80,5 @@ class LED // main class
 };
 
 RGB mix(RGB color_1, RGB color_2, uint8_t step);
-RGB fromHSB(uint8_t hue, uint8_t sat, uint8_t val);
+RGB fromHSB(uint16_t hue, uint8_t sat, uint8_t val);
 #endif

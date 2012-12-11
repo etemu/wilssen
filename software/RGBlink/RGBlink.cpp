@@ -34,7 +34,7 @@ void LED::initDefaults()
     
 	blink_on = 1000;  // basic blink pattern (1 sec off/1 sec on)
 	blink_off = 1000;
-	mode = 1;
+	mode = 0;
 
 	prevMillis = 0;
 }
@@ -192,15 +192,15 @@ RGB mix(RGB color_1, RGB color_2, uint8_t step)
 	return newCol;
 }
 
-RGB fromHSB(uint8_t hue, uint8_t sat, uint8_t val) { 
+RGB fromHSB(uint16_t hue, uint8_t sat, uint8_t val) { 
 	/*
 	 * Hue: 0..359
 	 * Sat: 0..255
 	 * Val: 0..255
 	 */
 	RGB result;
- 	val = dim_curve[val];
- 	sat = 255-dim_curve[255-sat];
+ 	val = pgm_read_byte(&dim_curve[val]);
+ 	sat = 255-pgm_read_byte(&dim_curve[255-sat]);
 	uint8_t r, b, g, base;
 
   	if (sat == 0) //Acromatic, hue not needed
