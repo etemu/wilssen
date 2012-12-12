@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 wilssen
 =======
 
@@ -7,3 +8,9 @@ Compatible with the the Arduino platform.
 
 CC-BY-SA 3.0: This work is Open Source and licensed under
 the Creative Commons Attribution-ShareAlike 3.0 License.
+=======
+RGBlink
+=======
+
+arduino library for RGB-LEDs
+>>>>>>> 2ef95ef817a8621b1360855584f7861e342f81a1

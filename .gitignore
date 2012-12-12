@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #################
 ## EAGLE backup files (shure)
 #################
@@ -171,3 +172,18 @@ pip-log.txt
 
 # Mac crap
 .DS_Store
+=======
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+>>>>>>> 2ef95ef817a8621b1360855584f7861e342f81a1
