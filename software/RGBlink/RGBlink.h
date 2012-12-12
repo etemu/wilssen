@@ -7,7 +7,7 @@
   #include "WProgram.h"
 #endif
 
-#define gamma_correct 1
+#define hstep 60		
 
 typedef struct
 {
@@ -19,16 +19,14 @@ typedef struct
 typedef struct
 {
 	uint16_t hue;
-	uint8_t	 saturation;
-	uint8_t  brightness;
+	uint8_t	 sat;
+	uint8_t  bri;
 } HSB;
 
-const RGB red 		= {255,000,000};
-const RGB green 	= {000,255,000};
-const RGB blue 		= {000,000,255};
-const RGB yellow 	= {255,255,000};
-const RGB white 	= {255,255,255};
-const RGB black		= {000,000,000};
+const HSB red 		= {000	  ,255,255}; 
+const HSB green 	= {hstep*2,255,255};
+const HSB blue 		= {hstep*4,255,255};
+const HSB yellow 	= {hstep  ,255,255};
 
 
 PROGMEM const prog_uint8_t dim_curve[256] = {
@@ -53,7 +51,8 @@ PROGMEM const prog_uint8_t dim_curve[256] = {
 class LED // main class
 {
 	public:
-		LED(uint8_t to_red_pin,uint8_t to_green_pin,uint8_t to_blue_pin);	
+		LED(uint8_t to_red_pin,uint8_t to_green_pin,uint8_t to_blue_pin); // init the LED
+		LED(uint8_t to_red_pin,uint8_t to_green_pin,uint8_t to_blue_pin,bool to_inverted); // init the LED with an additional option for inverted PWM (for low PWM LED drivers)
 
 		void on();
 		void off();
@@ -61,24 +60,38 @@ class LED // main class
 		//void selftest();
 		void update();	
 
-		void initDefaults();	
+		void initDefaults(); // (re)set some basic default values
 
-		void setColor(RGB to_color);
-		void writeColor(RGB to_color);
+		void writeRGB(RGB to_color);
+
+		void setColor(HSB to_color);
+		void writeHSB(HSB to_color);
+
 		void setBlink(uint16_t to_on_val, uint16_t to_off_val);
 		void setMode(uint8_t to_mode);
+
 		int getMode();
 	private:
-		uint8_t red_pin, green_pin, blue_pin;	// used Arduino Pins
-		RGB color;
+		uint8_t red_pin, green_pin, blue_pin; // used Arduino Pins
+		HSB color;
 		uint16_t blink_on, blink_off;
+		bool isOn;
+		bool inverted; // invert the PWM values?
 
 		uint8_t mode;
-		bool isOn;	
 
 		unsigned long prevMillis; // store the last mills();
 };
 
-RGB mix(RGB color_1, RGB color_2, uint8_t step);
-RGB fromHSB(uint16_t hue, uint8_t sat, uint8_t val);
+RGB HSBtoRGB(HSB from_color);
+HSB mix(HSB color_1, HSB color_2, uint8_t step);
 #endif
+
+
+/* 
+ * Replace all colors w/ HSB
+ * 
+ * 
+ * 
+ * 
+ */

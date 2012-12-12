@@ -18,19 +18,31 @@
  ***************************/
 
 
-LED::LED(uint8_t to_red_pin,uint8_t to_green_pin,uint8_t to_blue_pin)
+LED::LED(uint8_t to_red_pin,uint8_t to_green_pin,uint8_t to_blue_pin) // init the LED w/out setting the inverted param
+{
+	red_pin = to_red_pin;
+	green_pin = to_green_pin;
+	blue_pin = to_blue_pin;
+    
+	initDefaults();
+
+	inverted = false;
+}
+
+LED::LED(uint8_t to_red_pin,uint8_t to_green_pin,uint8_t to_blue_pin,bool to_inverted) // init the LED w/ setting the inverted param
 {
 	red_pin = to_red_pin;
 	green_pin = to_green_pin;
 	blue_pin = to_blue_pin;
     
     initDefaults();
-}
 
+	inverted = to_inverted;    
+}
 void LED::initDefaults()
 {
 	isOn = true;
-	setColor(white);
+	setColor(red);
     
 	blink_on = 1000;  // basic blink pattern (1 sec off/1 sec on)
 	blink_off = 1000;
@@ -43,16 +55,19 @@ void LED::initDefaults()
  * Basic operations
  ***************************/
 
+ // NOT needen, replace w/ foo
+
 void LED::on()
 {
 	isOn = true;
-	writeColor(color);
+	writeHSB(color);
 }
 
 void LED::off()
 {
 	isOn = false;
-	writeColor(black);
+
+	writeRGB((RGB){0,0,0});
 }
 /* TODO: reimplement
 void LED::selftest()  //TODO: change this to create a pattern
@@ -100,11 +115,8 @@ void LED::update()
 		   		}
 		   		else
 		   		{
-		   			RGB newCol = {(uint8_t)(perc*color.red),
-		   					   	  (uint8_t)(perc*color.green),
-		   					   	  (uint8_t)(perc*color.blue)};
-
-		   			writeColor(newCol);
+		   			HSB newCol = {color.hue,color.sat,(uint8_t)(perc*color.bri)};
+		   			writeHSB(newCol);
 		   		}
 		   	}
 
@@ -119,11 +131,8 @@ void LED::update()
 		   		}
 		   		else
 		   		{
-		   			RGB newCol = {color.red-(uint8_t)(perc*color.red),
-		   					   	  color.green-(uint8_t)(perc*color.green),
-		   					   	  color.blue-(uint8_t)(perc*color.blue)};
-
-		   			writeColor(newCol);
+		   			HSB newCol = {color.hue,color.sat,255-(uint8_t)(perc*color.bri)};
+		   			writeHSB(newCol);
 		   		}
 		   		
 		   	}
@@ -146,29 +155,33 @@ void LED::update()
 	blink_on =	to_on_val;
 }
 
-void LED::writeColor(RGB to_color)  // show a color w/out deleting the buffer, needed for fading
+void LED::writeRGB(RGB to_color)  // show a color w/out deleting the buffer, needed for fading
 {
-
-	if(gamma_correct)
+	
+	if(inverted)
 	{
-		analogWrite(red_pin, 	pgm_read_byte(&dim_curve[to_color.red]));
-		analogWrite(green_pin,	pgm_read_byte(&dim_curve[to_color.green]));
-		analogWrite(blue_pin, 	pgm_read_byte(&dim_curve[to_color.blue]));
+		analogWrite(red_pin, ~to_color.red);    // "~" is a bitshift operator and will invert the given value (255->0,100->155)
+		analogWrite(green_pin, ~to_color.green);
+		analogWrite(blue_pin, ~to_color.blue);		
 	}
 	else
-	{
+	{   
 		analogWrite(red_pin, to_color.red);
 		analogWrite(green_pin, to_color.green);
 		analogWrite(blue_pin, to_color.blue);
 	}
-	
 }
 
-void LED::setColor(RGB to_color)
+void LED::writeHSB(HSB to_color)  // show a color w/out deleting the buffer, needed for fading
+{
+	writeRGB(HSBtoRGB(to_color));	
+}
+
+void LED::setColor(HSB to_color)
 {
 	color = to_color;
 	if (isOn && mode == 0) // prevent performance issues when fading while setting color 
-		writeColor(color);
+		writeHSB(color);
 }
 
 void LED::setMode(uint8_t to_mode)
@@ -181,6 +194,7 @@ int LED::getMode()
 	return mode;
 }
 
+/* NOT needed, replaced w/ HSB
 RGB mix(RGB color_1, RGB color_2, uint8_t step)
 {
 	float perc = (float)step/255;
@@ -191,42 +205,45 @@ RGB mix(RGB color_1, RGB color_2, uint8_t step)
 
 	return newCol;
 }
-
-RGB fromHSB(uint16_t hue, uint8_t sat, uint8_t val) { 
+*/
+RGB HSBtoRGB(HSB from_color) 
+{ 
 	/*
 	 * Hue: 0..359
 	 * Sat: 0..255
-	 * Val: 0..255
+	 * bri: 0..255
 	 */
+
 	RGB result;
- 	val = pgm_read_byte(&dim_curve[val]);
- 	sat = 255-pgm_read_byte(&dim_curve[255-sat]);
+ 	from_color.bri = pgm_read_byte(&dim_curve[from_color.bri]);
+ 	from_color.sat = 255-pgm_read_byte(&dim_curve[255-from_color.sat]);
+
 	uint8_t r, b, g, base;
 
-  	if (sat == 0) //Acromatic, hue not needed
+  	if (from_color.sat == 0) //Acromatic, from_color.hue not needed
   	{ 
-    	result.red = val;
-	    result.green = val;
-	    result.blue = val; 
+    	result.red = from_color.bri;
+	    result.green = from_color.bri;
+	    result.blue = from_color.bri; 
 	} 
 	else  
 	{ 
-		base = ((255 - sat) * val)>>8;
+		base = ((255 - from_color.sat) * from_color.bri)>>8;
 
-	    switch(hue/60) 
+	    switch(from_color.hue/hstep) 
 	    { 
 		    case 0:// 0..59
 		    {
-		        result.red = val;		
-		        result.green = (((val-base)*hue)/60)+base;		
+		        result.red = from_color.bri;		
+		        result.green = (((from_color.bri-base)*from_color.hue)/hstep)+base;		
 		        result.blue = base;		
 		    	break;
 			}
 
-		    case 1://60..119
+		    case 1://hstep..119
 		    {
-		        result.red = (((val-base)*(60-(hue%60)))/60)+base;		
-		        result.green = val;		
+		        result.red = (((from_color.bri-base)*(hstep-(from_color.hue%hstep)))/hstep)+base;		
+		        result.green = from_color.bri;		
 		        result.blue = base;		
 		    	break;
 		    }
@@ -234,35 +251,34 @@ RGB fromHSB(uint16_t hue, uint8_t sat, uint8_t val) {
 		    case 2://120..179
 		    {
 		        result.red = base;		
-		        result.green = val;		
-		        result.blue = (((val-base)*(hue%60))/60)+base;		
+		        result.green = from_color.bri;		
+		        result.blue = (((from_color.bri-base)*(from_color.hue%hstep))/hstep)+base;		
 		    	break;
 			}
 
 			case 3://180..239
 		    {
 		        result.red = base;		
-		        result.green = (((val-base)*(60-(hue%60)))/60)+base;		
-		        result.blue = val;		
+		        result.green = (((from_color.bri-base)*(hstep-(from_color.hue%hstep)))/hstep)+base;		
+		        result.blue = from_color.bri;		
 		    	break;
 		    }
 
 			case 4://240..299
 		    {
-		        result.red = (((val-base)*(hue%60))/60)+base;		
+		        result.red = (((from_color.bri-base)*(from_color.hue%hstep))/hstep)+base;		
 		        result.green = base;		
-		        result.blue = val;		
+		        result.blue = from_color.bri;		
 		    	break;
 		    }
 
 			case 5://300..359
 		    {
-		        result.red = val;		
+		        result.red = from_color.bri;		
 		        result.green = base;		
-		        result.blue = (((val-base)*(60-(hue%60)))/60)+base;		
+		        result.blue = (((from_color.bri-base)*(hstep-(from_color.hue%hstep)))/hstep)+base;		
 		    	break;
 		    }		
-
 		}
 	}   
 	return result;
