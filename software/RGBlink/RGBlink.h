@@ -7,7 +7,7 @@
   #include "WProgram.h"
 #endif
 
-#define hstep 60		
+#define hstep 60  // steps for each main color(cyan, magenta, yellow, green, red , blue), by default 60 => 360° colorspace
 
 typedef struct
 {
@@ -27,7 +27,6 @@ const HSB red 		= {000	  ,255,255};
 const HSB green 	= {hstep*2,255,255};
 const HSB blue 		= {hstep*4,255,255};
 const HSB yellow 	= {hstep  ,255,255};
-
 
 PROGMEM const prog_uint8_t dim_curve[256] = {
     0,   1,   1,   2,   2,   2,   2,   2,   2,   3,   3,   3,   3,   3,   3,   3,
@@ -57,7 +56,6 @@ class LED // main class
 		void on();
 		void off();
 		
-		//void selftest();
 		void update();	
 
 		void initDefaults(); // (re)set some basic default values
@@ -79,19 +77,11 @@ class LED // main class
 		bool inverted; // invert the PWM values?
 
 		uint8_t mode;
-
-		unsigned long prevMillis; // store the last mills();
+	
+		unsigned long prevMillis; // store the last mills() for non-block blinking
 };
 
 RGB HSBtoRGB(HSB from_color);
 HSB mix(HSB color_1, HSB color_2, uint8_t step);
+
 #endif
-
-
-/* 
- * Replace all colors w/ HSB
- * 
- * 
- * 
- * 
- */

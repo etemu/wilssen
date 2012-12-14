@@ -11,6 +11,7 @@
  * 0 Color
  * 1 Pattern
  * 2 Heartbeat
+ * 3 Selftest
  */
 
 /***************************
@@ -55,7 +56,6 @@ void LED::initDefaults()
  * Basic operations
  ***************************/
 
- // NOT needen, replace w/ foo
 
 void LED::on()
 {
@@ -69,12 +69,7 @@ void LED::off()
 
 	writeRGB((RGB){0,0,0});
 }
-/* TODO: reimplement
-void LED::selftest()  //TODO: change this to create a pattern
-{
-	//loop trough all colors maybe?	
-}
-*/
+
 /***************************
  * update cycle for patterns
  ***************************/
@@ -140,6 +135,20 @@ void LED::update()
 			break;	
 		}
 
+		case 3: //selftest
+		{
+			unsigned long currentMillis = millis();
+			uint16_t blink_diff = (uint16_t)(currentMillis - prevMillis);
+
+			writeHSB((HSB){(blink_diff/10)%360,255,255});
+		   	
+		   	if (blink_diff>=3600)
+		   	{
+		   		setMode(0);
+		   	}
+			break;	
+		}
+
 		//default:
 	    	//do nothing
 	}
@@ -186,7 +195,12 @@ void LED::setColor(HSB to_color)
 
 void LED::setMode(uint8_t to_mode)
 {
-	mode = to_mode;
+	if(mode != to_mode)
+	{
+		mode = to_mode;
+		prevMillis = millis();
+		on();
+	}
 }
 
 int LED::getMode()
@@ -194,18 +208,18 @@ int LED::getMode()
 	return mode;
 }
 
-/* NOT needed, replaced w/ HSB
-RGB mix(RGB color_1, RGB color_2, uint8_t step)
+
+HSB mix(HSB color_1, HSB color_2, uint8_t step)
 {
 	float perc = (float)step/255;
 
-	RGB newCol = {(uint8_t)(perc*color_1.red)	+ (uint8_t)((1-perc)*color_2.red),
-		   		  (uint8_t)(perc*color_1.green)	+ (uint8_t)((1-perc)*color_2.green),
-		   		  (uint8_t)(perc*color_1.blue)	+ (uint8_t)((1-perc)*color_2.blue)};
+	HSB newCol = {(uint8_t)(perc*color_1.hue)	+ (uint8_t)((1-perc)*color_2.hue),
+		   		  (uint8_t)(perc*color_1.sat)	+ (uint8_t)((1-perc)*color_2.sat),
+		   		  (uint8_t)(perc*color_1.bri)	+ (uint8_t)((1-perc)*color_2.bri)};
 
 	return newCol;
 }
-*/
+
 RGB HSBtoRGB(HSB from_color) 
 { 
 	/*
@@ -232,7 +246,7 @@ RGB HSBtoRGB(HSB from_color)
 
 	    switch(from_color.hue/hstep) 
 	    { 
-		    case 0:// 0..59
+		    case 0://red
 		    {
 		        result.red = from_color.bri;		
 		        result.green = (((from_color.bri-base)*from_color.hue)/hstep)+base;		
@@ -240,7 +254,7 @@ RGB HSBtoRGB(HSB from_color)
 		    	break;
 			}
 
-		    case 1://hstep..119
+		    case 1://yellow
 		    {
 		        result.red = (((from_color.bri-base)*(hstep-(from_color.hue%hstep)))/hstep)+base;		
 		        result.green = from_color.bri;		
@@ -248,7 +262,7 @@ RGB HSBtoRGB(HSB from_color)
 		    	break;
 		    }
 
-		    case 2://120..179
+		    case 2://green
 		    {
 		        result.red = base;		
 		        result.green = from_color.bri;		
@@ -256,7 +270,7 @@ RGB HSBtoRGB(HSB from_color)
 		    	break;
 			}
 
-			case 3://180..239
+			case 3://cyan
 		    {
 		        result.red = base;		
 		        result.green = (((from_color.bri-base)*(hstep-(from_color.hue%hstep)))/hstep)+base;		
@@ -264,7 +278,7 @@ RGB HSBtoRGB(HSB from_color)
 		    	break;
 		    }
 
-			case 4://240..299
+			case 4://blue
 		    {
 		        result.red = (((from_color.bri-base)*(from_color.hue%hstep))/hstep)+base;		
 		        result.green = base;		
@@ -272,7 +286,7 @@ RGB HSBtoRGB(HSB from_color)
 		    	break;
 		    }
 
-			case 5://300..359
+			case 5://magenta
 		    {
 		        result.red = from_color.bri;		
 		        result.green = base;		
