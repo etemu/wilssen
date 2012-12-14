@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 wilssen
 =======
 
@@ -14,3 +15,11 @@ RGBlink
 
 arduino library for RGB-LEDs
 >>>>>>> 2ef95ef817a8621b1360855584f7861e342f81a1
+=======
+RGBlink
+=======
+
+Arduino RGB-LED library
+
+CC-BY-SA 3.0: This work is Open Source and licensed under the Creative Commons Attribution-ShareAlike 3.0 License.
+>>>>>>> 49fbd1804cde62891a89b5ce270c52493b216702
