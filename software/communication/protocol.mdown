@@ -17,7 +17,7 @@ and another for the communication between the "exit-node" and a computer (data v
 
 ## Protocol
 
-> |Header|Wind Speed|Output voltage|Battery voltage|checksum|  
+> |-header-|-wind speed-|-output voltage-|-battery voltage-|-checksum-|  
 > |-----8bit-----|-----8bit-----|-----8bit-----|-----8bit-----|-----8bit-----|  
 
 ### Header
