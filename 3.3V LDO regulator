@@ -1,1 +1,16 @@
+We are looking for a cheap 3.3V LDO regulator
+
+Must have:
+-low idle current for sleep/standby mode
+-low Vdrop for usage with a 1c LiPo battery as a power supply (3.6-4.2V)
+-Vdrop of 0.4V would be nice.
+
+A list of some good, cheap ones as a starting point:
 http://www.jmedved.com/2012/06/selecting-a-ldo-voltage-regulator/
+
+
+TS9011
+http://download.siliconexpert.com/pdfs/2010/3/17/18/51/48/247/tsc_/auto/ts9011_e07.pdf
+Dropout Voltage: 0.4 V
+Power Dissipation: 0.3 W (sot 23)
+Typ quiescent current: 2 µA
