@@ -213,9 +213,9 @@ HSB mix(HSB color_1, HSB color_2, uint8_t step)
 {
 	float perc = (float)step/255;
 
-	HSB newCol = {(uint8_t)(perc*color_1.hue)	+ (uint8_t)((1-perc)*color_2.hue),
-		   		  (uint8_t)(perc*color_1.sat)	+ (uint8_t)((1-perc)*color_2.sat),
-		   		  (uint8_t)(perc*color_1.bri)	+ (uint8_t)((1-perc)*color_2.bri)};
+	HSB newCol = {(uint8_t)((1-perc)*color_1.hue)	+ (uint8_t)((perc)*color_2.hue),
+		   		  (uint8_t)((1-perc)*color_1.sat)	+ (uint8_t)((perc)*color_2.sat),
+		   		  (uint8_t)((1-perc)*color_1.bri)	+ (uint8_t)((perc)*color_2.bri)};
 
 	return newCol;
 }
