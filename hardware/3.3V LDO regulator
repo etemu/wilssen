@@ -5,12 +5,35 @@ Must have:
 -low Vdrop for usage with a 1c LiPo battery as a power supply (3.6-4.2V)
 -Vdrop of 0.4V would be nice.
 
-A list of some good, cheap ones as a starting point:
-http://www.jmedved.com/2012/06/selecting-a-ldo-voltage-regulator/
-
-
 TS9011
 http://download.siliconexpert.com/pdfs/2010/3/17/18/51/48/247/tsc_/auto/ts9011_e07.pdf
+Input Supply Voltage: Umax= 12 V
 Dropout Voltage: 0.4 V
+Imax: 250 mA
 Power Dissipation: 0.3 W (sot 23)
-Typ quiescent current: 2 µA
+Typ quiescent current: 2 µA (no load)
+Price: 0,203 Euro (at least 50 have to be ordered)
+http://de.rs-online.com/web/p/ldo-spannungsregler/0398625/
+
+MC1700
+http://ww1.microchip.com/downloads/en/DeviceDoc/21826b.pdf
+Input Supply Voltage: U= 2,3 V to 6 V
+Dropout Voltage: 178 mV (typ)
+Imax: 250 mA
+Power Dissipation: unknown
+Typ quiescent current: 1,6 µA (no load)
+Price: 0,409 Euro (at least 1 has to be ordered)
+http://de.farnell.com/microchip/mcp1700t-3302e-tt/v-reg-ldo-250ma-smd-sot23-3/dp/1296592/
+
+Price:0,29 Euro (at least 10 have to be ordered)
+http://de.rs-online.com/web/p/ldo-spannungsregler/6989072/
+
+ADP160/ADP161/ADP162/ADP163
+http://www.analog.com/static/imported-files/data_sheets/ADP160_161_162_163.pdf
+Input Supply Voltage: U= 2,2 V to 5 V
+Dropout Voltage: 195 mV
+Imax: 150 mA
+Power Dissipation: unknown
+Typ quiescent current: 560 nA (no load)
+Price: 0,489 Euro (at least 1 has to be ordered)
+http://de.farnell.com/microchip/mcp1700t-3302e-tt/v-reg-ldo-250ma-smd-sot23-3/dp/1296592/
