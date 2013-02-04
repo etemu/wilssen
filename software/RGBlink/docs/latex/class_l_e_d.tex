@@ -1,0 +1,216 @@
+\hypertarget{class_l_e_d}{\section{L\-E\-D Class Reference}
+\label{class_l_e_d}\index{L\-E\-D@{L\-E\-D}}
+}
+
+
+Our main class.  
+
+
+
+
+{\ttfamily \#include $<$R\-G\-Blink.\-h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_l_e_d_a720f6a00ca3a8ba52803bee2652a90cd}{L\-E\-D} (uint8\-\_\-t to\-\_\-red\-\_\-pin, uint8\-\_\-t to\-\_\-green\-\_\-pin, uint8\-\_\-t to\-\_\-blue\-\_\-pin)
+\begin{DoxyCompactList}\small\item\em Initialize the L\-E\-D-\/class. \end{DoxyCompactList}\item 
+\hyperlink{class_l_e_d_ad21f978e664553c4fbdfab1930a11f5e}{L\-E\-D} (uint8\-\_\-t to\-\_\-red\-\_\-pin, uint8\-\_\-t to\-\_\-green\-\_\-pin, uint8\-\_\-t to\-\_\-blue\-\_\-pin, bool to\-\_\-inverted)
+\begin{DoxyCompactList}\small\item\em Initialize the L\-E\-D-\/class with an invert-\/option. \end{DoxyCompactList}\item 
+void \hyperlink{class_l_e_d_ae712764359a7dd95cc7c7829a1e71ac1}{on} ()
+\begin{DoxyCompactList}\small\item\em Turn the \hyperlink{class_l_e_d}{L\-E\-D} on. \end{DoxyCompactList}\item 
+void \hyperlink{class_l_e_d_a346e4b72ca59cde82feeb4ea61b23b79}{off} ()
+\begin{DoxyCompactList}\small\item\em Turn the \hyperlink{class_l_e_d}{L\-E\-D} on. \end{DoxyCompactList}\item 
+void \hyperlink{class_l_e_d_ad615d612f5b0c7dac4dde5245f191382}{update} ()
+\begin{DoxyCompactList}\small\item\em Update cycle for non-\/blocking \hyperlink{class_l_e_d}{L\-E\-D} functions. \end{DoxyCompactList}\item 
+\hypertarget{class_l_e_d_a98f5db03f99a54710a01267144dee494}{void \hyperlink{class_l_e_d_a98f5db03f99a54710a01267144dee494}{init\-Defaults} ()}\label{class_l_e_d_a98f5db03f99a54710a01267144dee494}
+
+\begin{DoxyCompactList}\small\item\em Reset the L\-E\-Ds settings to the default values. \end{DoxyCompactList}\item 
+\hypertarget{class_l_e_d_aa3bf077975179fd49b460d89b3c1f0c2}{void \hyperlink{class_l_e_d_aa3bf077975179fd49b460d89b3c1f0c2}{write\-R\-G\-B} (\hyperlink{struct_r_g_b}{R\-G\-B} to\-\_\-color)}\label{class_l_e_d_aa3bf077975179fd49b460d89b3c1f0c2}
+
+\begin{DoxyCompactList}\small\item\em Write an \hyperlink{struct_r_g_b}{R\-G\-B} value to the P\-W\-M-\/pins w/out changing the color buffer. \end{DoxyCompactList}\item 
+void \hyperlink{class_l_e_d_a37b525137e042701600812569a0c717b}{write\-H\-S\-B} (\hyperlink{struct_h_s_b}{H\-S\-B} to\-\_\-color)
+\begin{DoxyCompactList}\small\item\em Write an \hyperlink{struct_h_s_b}{H\-S\-B} value to the P\-W\-M-\/pins w/out changing the color buffer. \end{DoxyCompactList}\item 
+void \hyperlink{class_l_e_d_a6ff49d145e12d6218422fe43d42e88e7}{set\-Color} (\hyperlink{struct_h_s_b}{H\-S\-B} to\-\_\-color)
+\begin{DoxyCompactList}\small\item\em Write a \hyperlink{struct_h_s_b}{H\-S\-B} color to the buffer. \end{DoxyCompactList}\item 
+void \hyperlink{class_l_e_d_a9cc7250c92975b509d2376dc0c6437b2}{set\-Blink} (uint16\-\_\-t to\-\_\-on\-\_\-val, uint16\-\_\-t to\-\_\-off\-\_\-val)
+\begin{DoxyCompactList}\small\item\em Set the blink parameters. \end{DoxyCompactList}\item 
+void \hyperlink{class_l_e_d_a979363ee92229d89f91fd5d1af2578f0}{set\-Mode} (uint8\-\_\-t to\-\_\-mode)
+\begin{DoxyCompactList}\small\item\em Set the L\-E\-Ds mode. \end{DoxyCompactList}\item 
+\hypertarget{class_l_e_d_a70bdd2f0a573be5b78d941edde83a37e}{int \hyperlink{class_l_e_d_a70bdd2f0a573be5b78d941edde83a37e}{get\-Mode} ()}\label{class_l_e_d_a70bdd2f0a573be5b78d941edde83a37e}
+
+\begin{DoxyCompactList}\small\item\em Returns the L\-E\-Ds current mode (0..4). \end{DoxyCompactList}\item 
+void \hyperlink{class_l_e_d_aa1a68e3efdc436498fe3aa97ab3da536}{flash} (uint16\-\_\-t to\-\_\-on\-\_\-val)
+\begin{DoxyCompactList}\small\item\em Flash the \hyperlink{class_l_e_d}{L\-E\-D}. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Our main class. 
+
+This class provides the functions used to drive a R\-G\-B-\/\-L\-E\-D. 
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{class_l_e_d_a720f6a00ca3a8ba52803bee2652a90cd}{\index{L\-E\-D@{L\-E\-D}!L\-E\-D@{L\-E\-D}}
+\index{L\-E\-D@{L\-E\-D}!LED@{L\-E\-D}}
+\subsubsection[{L\-E\-D}]{\setlength{\rightskip}{0pt plus 5cm}L\-E\-D\-::\-L\-E\-D (
+\begin{DoxyParamCaption}
+\item[{uint8\-\_\-t}]{to\-\_\-red\-\_\-pin, }
+\item[{uint8\-\_\-t}]{to\-\_\-green\-\_\-pin, }
+\item[{uint8\-\_\-t}]{to\-\_\-blue\-\_\-pin}
+\end{DoxyParamCaption}
+)}}\label{class_l_e_d_a720f6a00ca3a8ba52803bee2652a90cd}
+
+
+Initialize the L\-E\-D-\/class. 
+
+This class provides the functions used to drive a R\-G\-B-\/\-L\-E\-D 
+\begin{DoxyParams}{Parameters}
+{\em to\-\_\-red\-\_\-pin} & The Arduino pin the L\-E\-Ds red pin is connected to \\
+\hline
+{\em to\-\_\-green\-\_\-pin} & The Arduino pin the L\-E\-Ds green pin is connected to \\
+\hline
+{\em to\-\_\-blue\-\_\-pin} & The Arduino pin the L\-E\-Ds blue pin is connected to \\
+\hline
+\end{DoxyParams}
+\hypertarget{class_l_e_d_ad21f978e664553c4fbdfab1930a11f5e}{\index{L\-E\-D@{L\-E\-D}!L\-E\-D@{L\-E\-D}}
+\index{L\-E\-D@{L\-E\-D}!LED@{L\-E\-D}}
+\subsubsection[{L\-E\-D}]{\setlength{\rightskip}{0pt plus 5cm}L\-E\-D\-::\-L\-E\-D (
+\begin{DoxyParamCaption}
+\item[{uint8\-\_\-t}]{to\-\_\-red\-\_\-pin, }
+\item[{uint8\-\_\-t}]{to\-\_\-green\-\_\-pin, }
+\item[{uint8\-\_\-t}]{to\-\_\-blue\-\_\-pin, }
+\item[{bool}]{to\-\_\-inverted}
+\end{DoxyParamCaption}
+)}}\label{class_l_e_d_ad21f978e664553c4fbdfab1930a11f5e}
+
+
+Initialize the L\-E\-D-\/class with an invert-\/option. 
+
+This class provides the functions used to drive a R\-G\-B-\/\-L\-E\-D with inverted P\-W\-M 
+\begin{DoxyParams}{Parameters}
+{\em to\-\_\-red\-\_\-pin} & The Arduino pin the L\-E\-Ds red pin is connected to \\
+\hline
+{\em to\-\_\-green\-\_\-pin} & The Arduino pin the L\-E\-Ds green pin is connected to \\
+\hline
+{\em to\-\_\-blue\-\_\-pin} & The Arduino pin the L\-E\-Ds blue pin is connected to \\
+\hline
+{\em to\-\_\-inverted} & If 0 (false) this is much like the other L\-E\-D-\/init, if 1 (true) all output P\-W\-M-\/values are inverted (255-\/x) \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{class_l_e_d_aa1a68e3efdc436498fe3aa97ab3da536}{\index{L\-E\-D@{L\-E\-D}!flash@{flash}}
+\index{flash@{flash}!LED@{L\-E\-D}}
+\subsubsection[{flash}]{\setlength{\rightskip}{0pt plus 5cm}void L\-E\-D\-::flash (
+\begin{DoxyParamCaption}
+\item[{uint16\-\_\-t}]{to\-\_\-on\-\_\-val}
+\end{DoxyParamCaption}
+)}}\label{class_l_e_d_aa1a68e3efdc436498fe3aa97ab3da536}
+
+
+Flash the \hyperlink{class_l_e_d}{L\-E\-D}. 
+
+Sets the \hyperlink{class_l_e_d}{L\-E\-D} on and off again after n milliseconds (non-\/blocking). 
+\begin{DoxyParams}{Parameters}
+{\em to\-\_\-on\-\_\-val} & is the time the \hyperlink{class_l_e_d}{L\-E\-D} should flash in milliseconds. \\
+\hline
+\end{DoxyParams}
+\hypertarget{class_l_e_d_a346e4b72ca59cde82feeb4ea61b23b79}{\index{L\-E\-D@{L\-E\-D}!off@{off}}
+\index{off@{off}!LED@{L\-E\-D}}
+\subsubsection[{off}]{\setlength{\rightskip}{0pt plus 5cm}void L\-E\-D\-::off (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_l_e_d_a346e4b72ca59cde82feeb4ea61b23b79}
+
+
+Turn the \hyperlink{class_l_e_d}{L\-E\-D} on. 
+
+Sets all P\-W\-M-\/pins to 0 (255 is the invert-\/option is set). \hypertarget{class_l_e_d_ae712764359a7dd95cc7c7829a1e71ac1}{\index{L\-E\-D@{L\-E\-D}!on@{on}}
+\index{on@{on}!LED@{L\-E\-D}}
+\subsubsection[{on}]{\setlength{\rightskip}{0pt plus 5cm}void L\-E\-D\-::on (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_l_e_d_ae712764359a7dd95cc7c7829a1e71ac1}
+
+
+Turn the \hyperlink{class_l_e_d}{L\-E\-D} on. 
+
+Converts the current color to \hyperlink{struct_r_g_b}{R\-G\-B} and writes it to the pins. \hypertarget{class_l_e_d_a9cc7250c92975b509d2376dc0c6437b2}{\index{L\-E\-D@{L\-E\-D}!set\-Blink@{set\-Blink}}
+\index{set\-Blink@{set\-Blink}!LED@{L\-E\-D}}
+\subsubsection[{set\-Blink}]{\setlength{\rightskip}{0pt plus 5cm}void L\-E\-D\-::set\-Blink (
+\begin{DoxyParamCaption}
+\item[{uint16\-\_\-t}]{to\-\_\-on\-\_\-val, }
+\item[{uint16\-\_\-t}]{to\-\_\-off\-\_\-val}
+\end{DoxyParamCaption}
+)}}\label{class_l_e_d_a9cc7250c92975b509d2376dc0c6437b2}
+
+
+Set the blink parameters. 
+
+Needed for mode 1 and 2 (blink / pulse) 
+\begin{DoxyParams}{Parameters}
+{\em to\-\_\-on\-\_\-val} & is the time the \hyperlink{class_l_e_d}{L\-E\-D} should be on in milliseconds. \\
+\hline
+{\em to\-\_\-off\-\_\-val} & is the time the \hyperlink{class_l_e_d}{L\-E\-D} should be off in milliseconds. \\
+\hline
+\end{DoxyParams}
+\hypertarget{class_l_e_d_a6ff49d145e12d6218422fe43d42e88e7}{\index{L\-E\-D@{L\-E\-D}!set\-Color@{set\-Color}}
+\index{set\-Color@{set\-Color}!LED@{L\-E\-D}}
+\subsubsection[{set\-Color}]{\setlength{\rightskip}{0pt plus 5cm}void L\-E\-D\-::set\-Color (
+\begin{DoxyParamCaption}
+\item[{{\bf H\-S\-B}}]{to\-\_\-color}
+\end{DoxyParamCaption}
+)}}\label{class_l_e_d_a6ff49d145e12d6218422fe43d42e88e7}
+
+
+Write a \hyperlink{struct_h_s_b}{H\-S\-B} color to the buffer. 
+
+And if the \hyperlink{class_l_e_d}{L\-E\-D} is on to the P\-W\-M-\/pins. \hypertarget{class_l_e_d_a979363ee92229d89f91fd5d1af2578f0}{\index{L\-E\-D@{L\-E\-D}!set\-Mode@{set\-Mode}}
+\index{set\-Mode@{set\-Mode}!LED@{L\-E\-D}}
+\subsubsection[{set\-Mode}]{\setlength{\rightskip}{0pt plus 5cm}void L\-E\-D\-::set\-Mode (
+\begin{DoxyParamCaption}
+\item[{uint8\-\_\-t}]{to\-\_\-mode}
+\end{DoxyParamCaption}
+)}}\label{class_l_e_d_a979363ee92229d89f91fd5d1af2578f0}
+
+
+Set the L\-E\-Ds mode. 
+
+0\-: single color 1\-: blink 2\-: pulse (soft blinking) 3\-: selftest (loops trough the \hyperlink{struct_h_s_b}{H\-S\-B} color spectrum in 3600 milliseconds) 4\-: flash (just needed for the \hyperlink{class_l_e_d_aa1a68e3efdc436498fe3aa97ab3da536}{flash()} function) 
+\begin{DoxyParams}{Parameters}
+{\em to\-\_\-on\-\_\-val} & is the time the \hyperlink{class_l_e_d}{L\-E\-D} should be on in milliseconds. \\
+\hline
+{\em to\-\_\-off\-\_\-val} & is the time the \hyperlink{class_l_e_d}{L\-E\-D} should be off in milliseconds. \\
+\hline
+\end{DoxyParams}
+\hypertarget{class_l_e_d_ad615d612f5b0c7dac4dde5245f191382}{\index{L\-E\-D@{L\-E\-D}!update@{update}}
+\index{update@{update}!LED@{L\-E\-D}}
+\subsubsection[{update}]{\setlength{\rightskip}{0pt plus 5cm}void L\-E\-D\-::update (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_l_e_d_ad615d612f5b0c7dac4dde5245f191382}
+
+
+Update cycle for non-\/blocking \hyperlink{class_l_e_d}{L\-E\-D} functions. 
+
+Must be called every few milliseconds if you want to use functions like blink, fade or flash \hypertarget{class_l_e_d_a37b525137e042701600812569a0c717b}{\index{L\-E\-D@{L\-E\-D}!write\-H\-S\-B@{write\-H\-S\-B}}
+\index{write\-H\-S\-B@{write\-H\-S\-B}!LED@{L\-E\-D}}
+\subsubsection[{write\-H\-S\-B}]{\setlength{\rightskip}{0pt plus 5cm}void L\-E\-D\-::write\-H\-S\-B (
+\begin{DoxyParamCaption}
+\item[{{\bf H\-S\-B}}]{to\-\_\-color}
+\end{DoxyParamCaption}
+)}}\label{class_l_e_d_a37b525137e042701600812569a0c717b}
+
+
+Write an \hyperlink{struct_h_s_b}{H\-S\-B} value to the P\-W\-M-\/pins w/out changing the color buffer. 
+
+like write\-R\-G\-B(H\-S\-Bto\-R\-G\-B(\-R\-G\-B to\-\_\-color)). 
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+R\-G\-Blink.\-h\item 
+R\-G\-Blink.\-cpp\end{DoxyCompactItemize}
