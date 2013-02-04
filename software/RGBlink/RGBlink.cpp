@@ -80,25 +80,24 @@ void LED::update()
 	{	
 		case 1: //blink
 		{
-			unsigned long currentMillis = millis();
-		   	if(isOn && (uint16_t)(currentMillis - prevMillis) >= blink_on)//blink_on)  // a boolean 'true' equals '1', 'false' equals '0'
+			uint16_t blink_diff = (uint16_t)(millis() - prevMillis);
+		   	if(isOn && blink_diff >= blink_on)//blink_on)  // a boolean 'true' equals '1', 'false' equals '0'
 		   	{
 		   		off();
-		   		prevMillis = currentMillis;
+		   		prevMillis = millis();
 		   	}
 
-		   	else if(!isOn && (uint16_t)(currentMillis - prevMillis) >= blink_off)//blink_off)  // a boolean 'true' equals '1', 'false' equals '0'
+		   	else if(!isOn && blink_diff >= blink_off)//blink_off)  // a boolean 'true' equals '1', 'false' equals '0'
 		   	{
 		   		on();
-		   		prevMillis = currentMillis;
+		   		prevMillis = millis();
 		   	}
 			break;
 		}	
 
 		case 2: //fade
 		{
-			unsigned long currentMillis = millis();
-			uint16_t blink_diff = (uint16_t)(currentMillis - prevMillis);
+			uint16_t blink_diff = (uint16_t)(millis() - prevMillis);
 
 			if(isOn)
 		   	{
@@ -106,7 +105,7 @@ void LED::update()
 		   		if(perc >= 1)
 		   		{ 
 		   			isOn = false;
-		   			prevMillis = currentMillis;
+		   			prevMillis = millis();
 		   		}
 		   		else
 		   		{
@@ -122,7 +121,7 @@ void LED::update()
 		   		if(perc >= 1)
 		   		{ 
 		   			isOn = true;
-		   			prevMillis = currentMillis;
+		   			prevMillis = millis();
 		   		}
 		   		else
 		   		{
@@ -137,8 +136,7 @@ void LED::update()
 
 		case 3: //selftest
 		{
-			unsigned long currentMillis = millis();
-			uint16_t blink_diff = (uint16_t)(currentMillis - prevMillis);
+			uint16_t blink_diff = (uint16_t)(millis() - prevMillis);
 
 			writeHSB((HSB){(blink_diff/10)%360,255,255});
 		   	
@@ -147,6 +145,18 @@ void LED::update()
 		   		setMode(0);
 		   	}
 			break;	
+		}
+
+
+		case 4: //flash
+		{	
+			uint16_t blink_diff = (uint16_t)(millis() - prevMillis);
+		   	if(isOn && blink_diff >= flash_on) 
+		   	{
+		   		off();
+		   		setMode(0);
+		   	}
+		   	break;
 		}
 
 		//default:
@@ -164,9 +174,15 @@ void LED::update()
 	blink_on =	to_on_val;
 }
 
+ void LED::flash(uint16_t to_on_val)
+{
+	flash_on = to_on_val; 
+	on();
+	setMode(4);
+}
+
 void LED::writeRGB(RGB to_color)  // show a color w/out deleting the buffer, needed for fading
 {
-	
 	if(inverted)
 	{
 		analogWrite(red_pin, ~to_color.red);    // "~" is a bitshift operator and will invert the given value (255->0,100->155)
@@ -199,7 +215,6 @@ void LED::setMode(uint8_t to_mode)
 	{
 		mode = to_mode;
 		prevMillis = millis();
-		on();
 	}
 }
 
