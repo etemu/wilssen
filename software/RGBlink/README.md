@@ -2,7 +2,7 @@
 
 An Arduino library for controlling RGB-leds non-blocking
 
-[Documentation](docs.l3kn.de/RGBlink/)
+[Documentation](http://docs.l3kn.de/RGBlink/)
 
 
 by Leon (l3kn) Rische
