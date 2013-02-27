@@ -1,29 +1,3 @@
-jekyll-boilerplate
-==================
-by Leon (l3kn) Rische 
-
-Version 1.0.0
-
-## Usage
-
-###1. Install the following Gems
-  
-`gem install jekyll`  
-`gem install sass`  
-`gem install bourbon`  
-`gem install jekyll-asset-pipeline`
-
-###2. Change the _config.yaml
-
-###3. run `jekyll`  
-
-##ToDo
-
-* fix template
-* documentation
-
-
-
 # Node-ID
 
 15-bit long, octal system > 5x(0..7), in this case only 5x(0..4) because a node can only have 5 receiving-pipes.
@@ -47,7 +21,7 @@ uint16_t check = 017777;
 uint16_t id = 0321;
 while ( id & check )
 {
-  check <<= 3;
+	check <<= 3;
 	printf("%o\n", check);
 	printf("%o\n", id);
 }
@@ -56,10 +30,8 @@ while ( id & check )
 
 >177770
 >000321
->---
 >177700
 >000321
->---
 >177000
 >000321
 
