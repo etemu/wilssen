@@ -21,7 +21,7 @@
 RF24 radio(9,10);
 RF24Network network(radio);
 
-uint16_t this_node = 000; // 000;
+uint16_t this_node = 000; // 001
 short node_prime = 79; // 83, 89, 97
 
 const short max_active_nodes = 10;
@@ -42,6 +42,7 @@ void setup(void)
   Serial.begin(57600);
   SPI.begin();
   radio.begin();
+  radio.setPALevel(RF24_PA_MIN); // _LOW, _MED, _HIGH (Won't change anything, #YOLO)
   network.begin(/*channel*/ 42, /*node address*/ this_node );
   p("%ld: Starting up\n", millis());
 }
