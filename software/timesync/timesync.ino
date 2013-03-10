@@ -1,8 +1,3 @@
-/* 
- * Not confirmed to be working
- * NEW: Primes and timesync
- */
-
 
 #include <RF24Network.h>
 #include <RF24.h>
@@ -12,7 +7,7 @@
 RF24 radio(9,10);
 RF24Network network(radio);
 
-uint16_t this_node = 001; // 000;
+uint16_t this_node = 001; // 001
 short node_prime = 79; // 83, 89, 97
 
 const short max_active_nodes = 10;
@@ -21,7 +16,7 @@ short num_active_nodes = 0;
 short next_ping_node_index = 0;
 const unsigned long interval = 2000;
 unsigned long last_time_sent;
-
+unsigned long updates = 0;
 void add_node(uint16_t node);
 boolean send_T(uint16_t to);
 void handle_T(RF24NetworkHeader& header);
@@ -33,12 +28,15 @@ void setup(void)
   Serial.begin(57600);
   SPI.begin();
   radio.begin();
-  network.begin(/*channel*/ 100, /*node address*/ this_node );
+  radio.setPALevel(RF24_PA_MIN); // _LOW, _MED, _HIGH (Won't change anything, #YOLO)
+  network.begin(/*channel*/ 117, /*node address*/ this_node );
+  p("%ld: Starting up\n", millis());
 }
 
 void loop(void)
 {
   network.update();
+  updates++;
   while ( network.available() ) // while there is some shit filling our pipe
   {
     RF24NetworkHeader header;
@@ -53,6 +51,7 @@ void loop(void)
       break;      
     default:
       network.read(header,0,0);
+      p("le fuq is dis?");
       break;
     };
   }
@@ -60,22 +59,30 @@ void loop(void)
   unsigned long now = millis();
   if ( now - last_time_sent >= interval ) // non-blocking
   {
+    p("%ld cycles per ms\n",updates/interval);
+    updates = 0;
     last_time_sent = now;
     uint16_t to = 00;
-    bool ok;
+    bool ok = 0;
     if ( to != this_node)
+    {
       ok = send_T(to);
-    if (!ok)
-      last_time_sent -= 100; // random awesomeness to stop packets from colliding (at least it tries to)
-  }  
+      if (!ok)
+      {
+        //last_time_sent -= node_prime; // random awesomeness to stop packets from colliding (at least it tries to)
+        p("%ld: I JUST CAN'T DO THIS!\n", millis());
+      }
+    }
+  }   
 }
 /*
  * T send own time
  * B send back the recv T
- * P send ping
+ * P send ping // not yet implemented
  */
 boolean send_T(uint16_t to) // Timesync!
 {
+  p("%ld: Sent time\n", millis());
   RF24NetworkHeader header(to,'T');
   unsigned long time = millis();
   return network.write(header,&time,sizeof(time));
@@ -85,18 +92,21 @@ void handle_T(RF24NetworkHeader& header)
 {
   unsigned long time;
   network.read(header,&time,sizeof(time));
-  p("%ld: Recv 'T' from node %o -> %ld", millis(), header.from_node, time);
-  add_node(header.from_node);
-  RF24NetworkHeader header2(header.from_node,'T');
-  if(network.write(header2,&time,sizeof(time)))
-    p("%ld: send back", millis());
+  p("%ld: Recv 'T' from node %o -> %ld\n", millis(), header.from_node, time);
+  add_node(header.from_node);  
+  if(header.from_node != this_node)
+  {
+    RF24NetworkHeader header2(header.from_node/*header.from_node*/,'B');
+    if(network.write(header2,&time,sizeof(time)))
+      p("%ld: send back\n", millis());
+  }
 }
 
 void handle_B(RF24NetworkHeader& header)
 {
   unsigned long ref_time;
   network.read(header,&ref_time,sizeof(ref_time));
-  p("%ld: Recv 'B' from node %o -> %ldms round trip delay", millis(), header.from_node, millis()-ref_time);
+  p("%ld: Recv 'B' from node %o -> %ldms round trip delay\n", millis(), header.from_node, millis()-ref_time);
 }
 
 // Arduino version of the printf()-funcition in C 
@@ -117,6 +127,6 @@ void add_node(uint16_t node)
   if ( i == -1 && num_active_nodes < max_active_nodes )  // If not and there is enough place, add it to the table
   {
     active_nodes[num_active_nodes++] = node; 
-    p("%ld: Added a new node -> %o", millis(), node);
+    p("%ld: Added a new node -> %o\n", millis(), node);
   }
 }
