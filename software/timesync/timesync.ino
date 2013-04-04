@@ -4,7 +4,7 @@
 #include <SPI.h>
 #include <stdarg.h>
 
-RF24 radio(9,10);
+RF24 radio(9,8); //CSN at pin 9, CE at pin 8
 RF24Network network(radio);
 
 uint16_t this_node = 001; // 001
@@ -25,11 +25,12 @@ void p(char *fmt, ... );
 
 void setup(void)
 {
-  Serial.begin(57600);
+  Serial.begin(115200);
   SPI.begin();
   radio.begin();
-  radio.setPALevel(RF24_PA_MIN); // _LOW, _MED, _HIGH (Won't change anything, #YOLO)
-  network.begin(/*channel*/ 117, /*node address*/ this_node );
+  // The amplifier gain can be set to RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
+  radio.setPALevel(RF24_PA_HIGH); // transmitter gain value (see above)
+  network.begin(/*fixed radio channel: */ 117, /*node address: */ this_node );
   p("%ld: Starting up\n", millis());
 }
 
@@ -40,7 +41,7 @@ void loop(void)
   while ( network.available() ) // while there is some shit filling our pipe
   {
     RF24NetworkHeader header;
-    network.peek(header); // preview
+    network.peek(header); // preview the header, but don't advance nor flush the packet
     switch (header.type)
     {
     case 'T':
@@ -51,7 +52,7 @@ void loop(void)
       break;      
     default:
       network.read(header,0,0);
-      p("le fuq is dis?");
+      p("undefined packet type?");
       break;
     };
   }
@@ -59,7 +60,7 @@ void loop(void)
   unsigned long now = millis();
   if ( now - last_time_sent >= interval ) // non-blocking
   {
-    p("%ld cycles per ms\n",updates/interval);
+    p("%ld estimated updates/s\n",updates*1000/interval);
     updates = 0;
     last_time_sent = now;
     uint16_t to = 00;
@@ -77,7 +78,7 @@ void loop(void)
 }
 /*
  * T send own time
- * B send back the recv T
+ * B send back the just received time
  * P send ping // not yet implemented
  */
 boolean send_T(uint16_t to) // Timesync!
