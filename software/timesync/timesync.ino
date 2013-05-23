@@ -7,9 +7,13 @@
 RF24 radio(9,8); //CSN at pin 9, CE at pin 8
 RF24Network network(radio);
 
-uint16_t this_node = 000; // 001
+static uint16_t this_node = 02; // 001
 short node_prime = 79; // 83, 89, 97
-
+unsigned long iterations=0;
+unsigned long errors=0;
+unsigned int loss=0;
+unsigned long p_sent=0;
+unsigned long p_recv=0;
 // Variables for the 32bit unsigned long Microsecond rollover handling
 static unsigned long microRollovers=0; // variable that permanently holds the number of rollovers since startup
 static unsigned long halfwayMicros = 2147483647; // this is halfway to the max unsigned long value of 4294967296
@@ -19,7 +23,7 @@ const short max_active_nodes = 10;
 uint16_t active_nodes[max_active_nodes];
 short num_active_nodes = 0;
 short next_ping_node_index = 0;
-const unsigned long interval = 5000;
+const unsigned long interval = 500;
 unsigned long last_time_sent;
 unsigned long updates = 0;
 void add_node(uint16_t node);
@@ -30,12 +34,19 @@ void p(char *fmt, ... );
 
 void setup(void)
 {
+  pinMode(7, OUTPUT); // VCC for the NRF24 module
+  digitalWrite(7,HIGH); // Power up the NRF24 module
   Serial.begin(115200);
+  delay(128);
   SPI.begin();
   radio.begin();
   // The amplifier gain can be set to RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
   radio.setPALevel(RF24_PA_LOW); // transmitter gain value (see above)
-  network.begin(/*fixed radio channel: */ 117, /*node address: */ this_node );
+  network.begin(/*fixed radio channel: */ 16, /*node address: */ this_node );
+  Serial.println("this_node:");
+  Serial.println(this_node,OCT);
+  Serial.println(this_node,DEC);
+  Serial.println();
   p("%010ld: Starting up\n", millis());
 }
 
@@ -57,7 +68,7 @@ void loop(void)
       break;      
     default:
       network.read(header,0,0);
-      p("            undefined packet type?");
+      p("            undefined packet type?\n");
       break;
     };
   }
@@ -82,11 +93,28 @@ void loop(void)
       unsigned long nowM = micros();
       ok = send_T(to);
       p(" in %ld us.\n", (micros()-nowM) );
+      if (ok){
+        p_sent++;
+      }
       if (!ok)
       {
+        errors++;
         //last_time_sent -= node_prime; // random awesomeness to stop packets from colliding (at least it tries to)
-        p("%010ld: Can I haz bugfix? \n", millis()); // An error occured, need to stahp!
+        p("%010ld: Timout while sending. Can I haz bugfix? \n", millis()); // An error occured, need to stahp!
       }
+      iterations++;
+      Serial.print("loop ");
+      Serial.println(iterations);
+      Serial.print("errors: ");
+      Serial.println(errors);     
+      Serial.print("send error in %: ");
+      Serial.println(errors*100/iterations);
+      Serial.print("packet sent    : ");
+      Serial.println(p_sent);
+      Serial.print("packet received: ");
+      Serial.println(p_recv);
+      Serial.print("no reply in %  : ");
+      Serial.println(p_recv*100/(p_sent-1));
     }
   }   
 }
@@ -119,6 +147,7 @@ void handle_T(RF24NetworkHeader& header)
 
 void handle_B(RF24NetworkHeader& header)
 {
+  p_recv++;
   unsigned long ref_time;
   network.read(header,&ref_time,sizeof(ref_time));
   p("%010ld: Recv 'B' from %05o -> %ldus round trip\n", millis(), header.from_node, micros()-ref_time);
