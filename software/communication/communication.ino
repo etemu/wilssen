@@ -4,13 +4,11 @@
 #include <SPI.h>
 #include <stdarg.h>
 
-RF24 radio(9,8); // CE, CS. CE at pin 9, CSN at pin 8
+RF24 radio(A0,8); // CE, CS. CE at pin A0, CSN at pin 8
 RF24Network network(radio);
 
-static uint16_t this_node = 011; // 001
+static uint16_t this_node = 03; // 001
 short node_prime = 79; // 83, 89, 97
-
-
 unsigned long iterations=0;
 unsigned long errors=0;
 unsigned int loss=0;
@@ -25,7 +23,7 @@ const short max_active_nodes = 10;
 uint16_t active_nodes[max_active_nodes];
 short num_active_nodes = 0;
 short next_ping_node_index = 0;
-const unsigned long interval = 500;
+const unsigned long interval = 5000;
 unsigned long last_time_sent;
 unsigned long updates = 0;
 void add_node(uint16_t node);
@@ -36,6 +34,8 @@ void p(char *fmt, ... );
 
 void setup(void)
 {
+  pinMode(A1, OUTPUT); // GND for the NRF24 module
+  digitalWrite(A1, LOW); // GND for the NRF24 module
   pinMode(7, OUTPUT); // VCC for the NRF24 module
   digitalWrite(7,HIGH); // Power up the NRF24 module
   Serial.begin(115200);
