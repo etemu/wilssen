@@ -5,7 +5,7 @@
 #include <stdarg.h>
 #include <Adafruit_NeoPixel.h>
 
-#define PIN 6
+#define LEDPIN 6
 
 // Parameter 1 = number of pixels in strip
 // Parameter 2 = pin number (most are valid)
@@ -14,12 +14,12 @@
 //   NEO_KHZ400  400 KHz (classic 'v1' (not v2) FLORA pixels, WS2811 drivers)
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
-Adafruit_NeoPixel leds = Adafruit_NeoPixel(4, PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel leds = Adafruit_NeoPixel(8, LEDPIN, NEO_GRB + NEO_KHZ800);
 
-RF24 radio(A0,8); // CE, CS. CE at pin A0, CSN at pin 8
+RF24 radio(A0,10); // CE, CS. CE at pin A0, CSN at pin 10
 RF24Network network(radio);
 
-static uint16_t this_node = 001; // 001
+static uint16_t this_node = 01; // always begin with 0 for octal declaration
 short node_prime = 79; // 83, 89, 97
 unsigned long iterations=0;
 unsigned long errors=0;
@@ -35,45 +35,92 @@ const short max_active_nodes = 10;
 uint16_t active_nodes[max_active_nodes];
 short num_active_nodes = 0;
 short next_ping_node_index = 0;
-const unsigned long interval = 5000;
+const unsigned long interval = 1000;
 unsigned long last_time_sent;
 unsigned long updates = 0;
 void add_node(uint16_t node);
 boolean send_T(uint16_t to);
+void handle_L(RF24NetworkHeader& header);
 void handle_T(RF24NetworkHeader& header);
 void handle_B(RF24NetworkHeader& header);
+void ledupdate(byte* ledmap);
 void p(char *fmt, ... );
+
+void ledst(int sta=127){
+  uint32_t c;
+  switch (sta) {
+    case 0:
+      c=leds.Color(0, 0, 0);
+      break;
+    case 1:
+      c=leds.Color(50, 0, 0);
+      break;
+    case 2:
+      c=leds.Color(0, 50, 0);
+      break;
+    case 3:
+      c=leds.Color(0, 0, 50);
+      break;
+    case 4:
+      c=leds.Color(25, 0, 25);
+      break;
+    case 5:
+      c=leds.Color(25, 25, 0);
+      break;
+    default:
+      c=leds.Color(5, 2, 2);
+      break;
+      }
+  leds.setPixelColor(0, c);
+  leds.show();
+}
 
 void setup(void)
 {
+  pinMode(A6, INPUT); // 3v3 for the NRF24 module via external LDO
+  pinMode(A7, INPUT); // NC
   leds.begin();
   leds.show(); // Initialize all pixels to 'off'
   pinMode(A1, OUTPUT); // GND for the NRF24 module
   digitalWrite(A1, LOW); // GND for the NRF24 module
-  pinMode(7, OUTPUT); // VCC for the NRF24 module
-  digitalWrite(7,HIGH); // Power up the NRF24 module
+  pinMode(2, OUTPUT); // Vcc for the NRF24 module
+  digitalWrite(2, HIGH); // Vcc for the NRF24 module
   Serial.begin(115200);
   delay(128);
   SPI.begin();
   radio.begin();
-  // The amplifier gain can be set to RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
-  radio.setPALevel(RF24_PA_HIGH); // transmitter gain value (see above)
-  network.begin(/*fixed radio channel: */ 16, /*node address: */ this_node );
-  Serial.println("this_node:");
-  Serial.println(this_node,OCT);
-  Serial.println(this_node,DEC);
+  // radio.printDetails(); // does not work right now?!
+  // The amplifier gain can be set to RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_MAX=0dBm.
+  radio.setPALevel(RF24_PA_MAX); // transmitter gain value (see above)
+  network.begin(/*fixed radio channel: */ 1, /*node address: */ this_node );
+  Serial.print("node ID (oct): ");
+  Serial.print(this_node,OCT);
+  Serial.print(", (dec): ");
+  Serial.print(this_node,DEC);
   Serial.println();
   p("%010ld: Starting up\n", millis());
-
-  colorWipe(leds.Color(50, 0, 0), 32); // Red
-  colorWipe(leds.Color(0, 50, 0), 32); // Green
-  colorWipe(leds.Color(0, 0, 50), 32); // Blue
+  colorWipe(leds.Color(100, 0, 0), 100); // Red
+  colorWipe(leds.Color(0, 100, 0), 100); // Green
+  colorWipe(leds.Color(0, 0, 100), 100); // Blue
+  colorWipe(leds.Color(0, 0, 0), 0); // clear
+  byte ledmap[24]={
+  100,100,100,
+  100,100,0,
+  100,0,100,
+  100,50,0,
+  100,50,50,
+  100,50,50,
+  100,50,50,
+  0,150,0};
+  ledupdate(ledmap);
+  colorWipe(leds.Color(0, 0, 0), 0); // clear
+  ledst(1);
 }
 
 void loop(void)
 {
 
-  colorWipe(leds.Color(millis(), 0, millis()/64), 20); // Red
+//  colorWipe(leds.Color(millis(), 0, millis()/64), 20); // Red
 //  colorWipe(leds.Color(25, 205, 0), 50); // Green
 //  colorWipe(leds.Color(0, 134, 225), 50); // Blue
   
@@ -81,10 +128,14 @@ void loop(void)
   updates++;
   while ( network.available() ) // while there is some shit filling our pipe
   {
+    ledst(3);
     RF24NetworkHeader header;
     network.peek(header); // preview the header, but don't advance nor flush the packet
     switch (header.type)
     {
+    case 'L':
+      handle_L(header);
+      break;
     case 'T':
       handle_T(header);
       break;
@@ -93,25 +144,29 @@ void loop(void)
       break;      
     default:
       network.read(header,0,0);
-      p("            undefined packet type?\n");
+      p("            undefined packet type: ");
+      Serial.print(header.type);
+      p("\n");
       break;
     };
+    ledst();
   }
   
   unsigned long now = millis();
   unsigned long nowM = micros();
   if ( now - last_time_sent >= interval ) // non-blocking
   {
+    ledst(2);
 /*
     Serial.print(microsRollover()); // how many times has the unsigned long micros() wrapped?
     Serial.print(":"); //separator 
     Serial.print(nowM); //micros();
     Serial.print("\n"); //new line
   */  
-    p("%010ld: %ld estimated updates/s\n",millis(),updates*1000/interval);
+    p("%010ld: %ld net updates/s\n",millis(),updates*1000/interval);
     updates = 0;
     last_time_sent = now;
-    uint16_t to = 00;
+    uint16_t to = 000;
     bool ok = 0;
     if ( to != this_node)
     {
@@ -127,26 +182,59 @@ void loop(void)
         //last_time_sent -= node_prime; // random awesomeness to stop packets from colliding (at least it tries to)
         p("%010ld: Timout while sending. Can I haz bugfix? \n", millis()); // An error occured, need to stahp!
       }
+           
       iterations++;
-      Serial.print("loop \t");
+  /*
+      Serial.print("loop: \t\t");
       Serial.println(iterations);
-      Serial.print("errors: \t");
+      Serial.print("errors: \t\t");
       Serial.println(errors);     
-      Serial.print("send error in %: ");
+      Serial.print("send error in %: \t");
       Serial.println(errors*100/iterations);
-      Serial.print("packet sent    : \t");
+      Serial.print("pkts sent    : \t");
       Serial.println(p_sent);
-      Serial.print("packet received: \t");
+      Serial.print("pkts received: \t");
       Serial.println(p_recv);
-      Serial.print("reply in % : \t");
+      Serial.print("replies in %: \t");
       Serial.println(p_recv*100/(p_sent-1));
+      */
     }
+    to = 01;
+    if ( to != this_node) {      
+      byte ledmap[24]={
+  120,121,122,
+  123,0,125,
+  126,127,0,
+  0,42,120,
+  13,0,150,
+  16,17,0,
+  19,20,210,
+  22,23,225};
+  Serial.println();
+  for(uint16_t i=0; i<sizeof(ledmap); i++) { // print out the received packet via serial
+  Serial.print(ledmap[i]);
+  Serial.print(" ");
+  }
+  Serial.println();
+  
+      nowM = micros();
+      ok = send_L(to, ledmap);
+      p(" in %ld us.\n", (micros()-nowM) );
+            if (ok){
+      }
+      if (!ok)
+      {
+        //last_time_sent -= node_prime; // random awesomeness to stop packets from colliding (at least it tries to)
+        p("%010ld: send_L timout.\n", millis()); // An error occured, need to stahp!
+      }
+    ledst();
   }   
+}
 }
 /*
  * T send own time
  * B send back the just received time
- * P send ping // not yet implemented
+ * L send LED map
  */
 boolean send_T(uint16_t to) // Send out this nodes' time -> Timesync!
 {
@@ -154,6 +242,36 @@ boolean send_T(uint16_t to) // Send out this nodes' time -> Timesync!
   RF24NetworkHeader header(to,'T');
   unsigned long time = micros();
   return network.write(header,&time,sizeof(time));
+}
+
+boolean send_L(uint16_t to, byte* ledmap) // Send out an LED map
+{
+  p("%010ld: Sent 'L' to   %05o", millis(),to);
+  RF24NetworkHeader header(to,'L');
+  return network.write(header,ledmap,24);
+}
+
+void ledupdate(byte* ledmap){
+  for(uint8_t i=0; i<leds.numPixels(); i++) {
+      uint32_t c = leds.Color(ledmap[i*3],ledmap[(i*3)+1],ledmap[(i*3)+2]);
+      leds.setPixelColor(i, c);
+      }
+    leds.show();
+  }
+  
+
+void handle_L(RF24NetworkHeader& header)
+{
+  byte ledmap[24];
+  network.read(header,ledmap,sizeof(ledmap));
+  p("%010ld: Recv 'L' from %05o\n", millis(), header.from_node);
+  ledupdate(ledmap);
+  
+  for(uint16_t i=0; i<sizeof(ledmap); i++) { // print out the received packet via serial
+  Serial.print(ledmap[i]);
+  Serial.print(" ");
+  }
+  Serial.println();
 }
 
 void handle_T(RF24NetworkHeader& header)
@@ -223,7 +341,7 @@ unsigned long microsRollover() { //based on Rob Faludi's (rob.faludi.com) milli 
   return microRollovers;
 }
 
-void colorWipe(uint32_t c, uint8_t wait) {
+void colorWipe(uint32_t c, uint8_t wait) { //this is blocking with the hardcoded delay...
   for(uint16_t i=0; i<leds.numPixels(); i++) {
       leds.setPixelColor(i, c);
       leds.show();
