@@ -4,7 +4,10 @@
 #include <SPI.h>
 #include <stdarg.h>
 #include <Adafruit_NeoPixel.h>
-
+#include <EEPROM.h>
+#define DEBUG 1 // debug mode with verbose output over serial at 115200 bps
+byte nodeID = 11; // Unique Node Identifier (2...254) - also the last byte of the IPv4 adress, not used if USE_EEPROM is set
+#define USE_EEPROM // read nodeID and network settings from EEPROM at bootup, overwrites nodeID and MAC.
 #define LEDPIN 6
 
 // Parameter 1 = number of pixels in strip
@@ -31,7 +34,7 @@ static unsigned long microRollovers=0; // variable that permanently holds the nu
 static unsigned long halfwayMicros = 2147483647; // this is halfway to the max unsigned long value of 4294967296
 static boolean readyToRoll = false; // tracks whether we've made it halfway to rollover
 
-const short max_active_nodes = 10;
+const short max_active_nodes = 32;
 uint16_t active_nodes[max_active_nodes];
 short num_active_nodes = 0;
 short next_ping_node_index = 0;
@@ -67,8 +70,23 @@ void ledst(int sta=127){
     case 5:
       c=leds.Color(25, 25, 0);
       break;
+    case 6:
+      c=leds.Color(255, 0, 0);
+      break;
+    case 10:
+      c=leds.Color(255, 255, 255);
+      break;      
+    case 11:
+      c=leds.Color(255, 0, 0);
+      break;
+    case 12:
+      c=leds.Color(0, 255, 0);
+      break;
+    case 13:
+      c=leds.Color(0, 0, 255);
+      break;
     default:
-      c=leds.Color(5, 2, 2);
+      c=leds.Color(20, 2, 2);
       break;
       }
   leds.setPixelColor(0, c);
@@ -77,23 +95,33 @@ void ledst(int sta=127){
 
 void setup(void)
 {
-  pinMode(A6, INPUT); // 3v3 for the NRF24 module via external LDO
-  pinMode(A7, INPUT); // NC
-  leds.begin();
+  pinMode(A6, INPUT); // some nodes have a sense wire to the 3v3 for the NRF24 module via external LDO
+  pinMode(A7, INPUT); // see above
+  leds.begin(); // the 8 LEDs
   leds.show(); // Initialize all pixels to 'off'
   pinMode(A1, OUTPUT); // GND for the NRF24 module
   digitalWrite(A1, LOW); // GND for the NRF24 module
-  pinMode(2, OUTPUT); // Vcc for the NRF24 module
-  digitalWrite(2, HIGH); // Vcc for the NRF24 module
+  pinMode(2, OUTPUT); // Vcc for the NRF24 module, 3.5-5V output to an LDO supplying 3.3V
+  digitalWrite(2, HIGH); // Vcc for the NRF24 module activated. Shutdown with LOW.
   Serial.begin(115200);
-  delay(128);
-  SPI.begin();
-  radio.begin();
-  // radio.printDetails(); // does not work right now?!
+  delay(128); // wait for the serial interface to boot up
+  SPI.begin(); // SPI for the NRF24
+  radio.begin(); // init of the NRF24
+  // radio.printDetails(); // print NRF config registers. Does not work with NRF24network right now?!
   // The amplifier gain can be set to RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_MAX=0dBm.
   radio.setPALevel(RF24_PA_MAX); // transmitter gain value (see above)
-  network.begin(/*fixed radio channel: */ 1, /*node address: */ this_node );
-  Serial.print("node ID (oct): ");
+  network.begin( 1, this_node ); // fixed radio channel, node ID
+  Serial.print(F("UID: "));
+  #ifdef USE_EEPROM
+  nodeID=EEPROM.read(0);
+  Serial.print(F("EEPROM, "));
+  #endif
+  Serial.println(nodeID);
+  Serial.print(F("Network ID (oct): "));
+  #ifdef USE_EEPROM
+  static uint16_t this_node = ((int) EEPROM.read(16)) + ((int) (EEPROM.read(17)*256L));
+  Serial.print(F("EEPROM, "));
+  #endif
   Serial.print(this_node,OCT);
   Serial.print(", (dec): ");
   Serial.print(this_node,DEC);
@@ -144,9 +172,9 @@ void loop(void)
       break;      
     default:
       network.read(header,0,0);
-      p("            undefined packet type: ");
+      Serial.print(F("            undefined packet type: "));
       Serial.print(header.type);
-      p("\n");
+      Serial.println();
       break;
     };
     ledst();
@@ -180,7 +208,7 @@ void loop(void)
       {
         errors++;
         //last_time_sent -= node_prime; // random awesomeness to stop packets from colliding (at least it tries to)
-        p("%010ld: Timout while sending. Can I haz bugfix? \n", millis()); // An error occured, need to stahp!
+        p("%010ld: No ACK timeout.\n", millis()); // An error occured, need to stahp!
       }
            
       iterations++;
