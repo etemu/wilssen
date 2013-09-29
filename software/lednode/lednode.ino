@@ -52,43 +52,43 @@ void p(char *fmt, ... );
 void ledst(int sta=127){
   uint32_t c;
   switch (sta) {
-    case 0:
-      c=leds.Color(0, 0, 0);
-      break;
-    case 1:
-      c=leds.Color(50, 0, 0);
-      break;
-    case 2:
-      c=leds.Color(0, 50, 0);
-      break;
-    case 3:
-      c=leds.Color(0, 0, 50);
-      break;
-    case 4:
-      c=leds.Color(25, 0, 25);
-      break;
-    case 5:
-      c=leds.Color(25, 25, 0);
-      break;
-    case 6:
-      c=leds.Color(255, 0, 0);
-      break;
-    case 10:
-      c=leds.Color(255, 255, 255);
-      break;      
-    case 11:
-      c=leds.Color(255, 0, 0);
-      break;
-    case 12:
-      c=leds.Color(0, 255, 0);
-      break;
-    case 13:
-      c=leds.Color(0, 0, 255);
-      break;
-    default:
-      c=leds.Color(20, 2, 2);
-      break;
-      }
+  case 0:
+    c=leds.Color(0, 0, 0);
+    break;
+  case 1:
+    c=leds.Color(50, 0, 0);
+    break;
+  case 2:
+    c=leds.Color(0, 50, 0);
+    break;
+  case 3:
+    c=leds.Color(0, 0, 50);
+    break;
+  case 4:
+    c=leds.Color(25, 0, 25);
+    break;
+  case 5:
+    c=leds.Color(25, 25, 0);
+    break;
+  case 6:
+    c=leds.Color(255, 0, 0);
+    break;
+  case 10:
+    c=leds.Color(255, 255, 255);
+    break;      
+  case 11:
+    c=leds.Color(255, 0, 0);
+    break;
+  case 12:
+    c=leds.Color(0, 255, 0);
+    break;
+  case 13:
+    c=leds.Color(0, 0, 255);
+    break;
+  default:
+    c=leds.Color(20, 2, 2);
+    break;
+  }
   leds.setPixelColor(0, c);
   leds.show();
 }
@@ -112,16 +112,16 @@ void setup(void)
   radio.setPALevel(RF24_PA_MAX); // transmitter gain value (see above)
   network.begin( 1, this_node ); // fixed radio channel, node ID
   Serial.print(F("UID: "));
-  #ifdef USE_EEPROM
+#ifdef USE_EEPROM
   nodeID=EEPROM.read(0);
   Serial.print(F("EEPROM, "));
-  #endif
+#endif
   Serial.println(nodeID);
   Serial.print(F("Network ID (oct): "));
-  #ifdef USE_EEPROM
+#ifdef USE_EEPROM
   static uint16_t this_node = ((int) EEPROM.read(16)) + ((int) (EEPROM.read(17)*256L));
   Serial.print(F("EEPROM, "));
-  #endif
+#endif
   Serial.print(this_node,OCT);
   Serial.print(", (dec): ");
   Serial.print(this_node,DEC);
@@ -132,14 +132,14 @@ void setup(void)
   colorWipe(leds.Color(0, 0, 100), 100); // Blue
   colorWipe(leds.Color(0, 0, 0), 0); // clear
   byte ledmap[24]={
-  100,100,100,
-  100,100,0,
-  100,0,100,
-  100,50,0,
-  100,50,50,
-  100,50,50,
-  100,50,50,
-  0,150,0};
+    100,100,100,
+    100,100,0,
+    100,0,100,
+    100,50,0,
+    100,50,50,
+    100,50,50,
+    100,50,50,
+    0,150,0  };
   ledupdate(ledmap);
   colorWipe(leds.Color(0, 0, 0), 0); // clear
   ledst(1);
@@ -148,10 +148,10 @@ void setup(void)
 void loop(void)
 {
 
-//  colorWipe(leds.Color(millis(), 0, millis()/64), 20); // Red
-//  colorWipe(leds.Color(25, 205, 0), 50); // Green
-//  colorWipe(leds.Color(0, 134, 225), 50); // Blue
-  
+  //  colorWipe(leds.Color(millis(), 0, millis()/64), 20); // Red
+  //  colorWipe(leds.Color(25, 205, 0), 50); // Green
+  //  colorWipe(leds.Color(0, 134, 225), 50); // Blue
+
   network.update();
   updates++;
   while ( network.available() ) // while there is some shit filling our pipe
@@ -179,18 +179,18 @@ void loop(void)
     };
     ledst();
   }
-  
+
   unsigned long now = millis();
   unsigned long nowM = micros();
   if ( now - last_time_sent >= interval ) // non-blocking
   {
     ledst(2);
-/*
+    /*
     Serial.print(microsRollover()); // how many times has the unsigned long micros() wrapped?
-    Serial.print(":"); //separator 
-    Serial.print(nowM); //micros();
-    Serial.print("\n"); //new line
-  */  
+     Serial.print(":"); //separator 
+     Serial.print(nowM); //micros();
+     Serial.print("\n"); //new line
+     */
     p("%010ld: %ld net updates/s\n",millis(),updates*1000/interval);
     updates = 0;
     last_time_sent = now;
@@ -210,59 +210,65 @@ void loop(void)
         //last_time_sent -= node_prime; // random awesomeness to stop packets from colliding (at least it tries to)
         p("%010ld: No ACK timeout.\n", millis()); // An error occured, need to stahp!
       }
-           
+
       iterations++;
-  /*
+      /*
       Serial.print("loop: \t\t");
-      Serial.println(iterations);
-      Serial.print("errors: \t\t");
-      Serial.println(errors);     
-      Serial.print("send error in %: \t");
-      Serial.println(errors*100/iterations);
-      Serial.print("pkts sent    : \t");
-      Serial.println(p_sent);
-      Serial.print("pkts received: \t");
-      Serial.println(p_recv);
-      Serial.print("replies in %: \t");
-      Serial.println(p_recv*100/(p_sent-1));
-      */
+       Serial.println(iterations);
+       Serial.print("errors: \t\t");
+       Serial.println(errors);     
+       Serial.print("send error in %: \t");
+       Serial.println(errors*100/iterations);
+       Serial.print("pkts sent    : \t");
+       Serial.println(p_sent);
+       Serial.print("pkts received: \t");
+       Serial.println(p_recv);
+       Serial.print("replies in %: \t");
+       Serial.println(p_recv*100/(p_sent-1));
+       */
     }
     to = 01;
     if ( to != this_node) {      
       byte ledmap[24]={
-  120,121,122,
-  123,0,125,
-  126,127,0,
-  0,42,120,
-  13,0,150,
-  16,17,0,
-  19,20,210,
-  22,23,225};
-  Serial.println();
-  for(uint16_t i=0; i<sizeof(ledmap); i++) { // print out the received packet via serial
-  Serial.print(ledmap[i]);
-  Serial.print(" ");
-  }
-  Serial.println();
-  
+        1,2,3,
+        0,0,50,
+        0,0,0,
+        0,0,75,
+        0,0,0,
+        0,0,100,
+        0,0,0,
+        0,0,125,      };
+      Serial.println();
+      for(uint16_t i=0; i<sizeof(ledmap); i++) { // print out the received packet via serial
+        Serial.print(ledmap[i]);
+        Serial.print(" ");
+      }
+      Serial.println();
+
       nowM = micros();
       ok = send_L(to, ledmap);
       p(" in %ld us.\n", (micros()-nowM) );
-            if (ok){
+      if (ok){
       }
       if (!ok)
       {
         //last_time_sent -= node_prime; // random awesomeness to stop packets from colliding (at least it tries to)
         p("%010ld: send_L timout.\n", millis()); // An error occured, need to stahp!
       }
-    ledst();
-  }   
-}
+      ledst();
+    }   
+  }
 }
 /*
- * T send own time
- * B send back the just received time
- * L send LED map
+C voltage (1-24 byte) fixed point values
+ D current (1-24 byte) fixed point values
+ E battery voltage (2 byte)
+ F error code + error value
+ G 
+ L LED map
+ T send out timestamp
+ V software version, UID, wID, location
+ B reply with the just received timestamp (T->B)
  */
 boolean send_T(uint16_t to) // Send out this nodes' time -> Timesync!
 {
@@ -281,12 +287,12 @@ boolean send_L(uint16_t to, byte* ledmap) // Send out an LED map
 
 void ledupdate(byte* ledmap){
   for(uint8_t i=0; i<leds.numPixels(); i++) {
-      uint32_t c = leds.Color(ledmap[i*3],ledmap[(i*3)+1],ledmap[(i*3)+2]);
-      leds.setPixelColor(i, c);
-      }
-    leds.show();
+    uint32_t c = leds.Color(ledmap[i*3],ledmap[(i*3)+1],ledmap[(i*3)+2]);
+    leds.setPixelColor(i, c);
   }
-  
+  leds.show();
+}
+
 
 void handle_L(RF24NetworkHeader& header)
 {
@@ -294,10 +300,10 @@ void handle_L(RF24NetworkHeader& header)
   network.read(header,ledmap,sizeof(ledmap));
   p("%010ld: Recv 'L' from %05o\n", millis(), header.from_node);
   ledupdate(ledmap);
-  
+
   for(uint16_t i=0; i<sizeof(ledmap); i++) { // print out the received packet via serial
-  Serial.print(ledmap[i]);
-  Serial.print(" ");
+    Serial.print(ledmap[i]);
+    Serial.print(" ");
   }
   Serial.println();
 }
@@ -348,11 +354,11 @@ void add_node(uint16_t node)
 
 unsigned long microsRollover() { //based on Rob Faludi's (rob.faludi.com) milli wrapper
 
-  // This would work even if the function were only run once every 35 minutes, though typically,
+    // This would work even if the function were only run once every 35 minutes, though typically,
   // the function should be called as frequently as possible to capture the actual moment of rollover.
   // The rollover counter is good for over 584000 years of runtime. 
   //  --Alex Shure
-  
+
   unsigned long nowMicros = micros(); // the time right now
 
   if (nowMicros > halfwayMicros) { // as long as the value is greater than halfway to the max
@@ -371,8 +377,9 @@ unsigned long microsRollover() { //based on Rob Faludi's (rob.faludi.com) milli 
 
 void colorWipe(uint32_t c, uint8_t wait) { //this is blocking with the hardcoded delay...
   for(uint16_t i=0; i<leds.numPixels(); i++) {
-      leds.setPixelColor(i, c);
-      leds.show();
-      delay(wait);
+    leds.setPixelColor(i, c);
+    leds.show();
+    delay(wait);
   }
 }
+
