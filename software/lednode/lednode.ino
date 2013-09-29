@@ -6,7 +6,7 @@
 #include <Adafruit_NeoPixel.h>
 #include <EEPROM.h>
 #define DEBUG 1 // debug mode with verbose output over serial at 115200 bps
-byte nodeID = 11; // Unique Node Identifier (2...254) - also the last byte of the IPv4 adress, not used if USE_EEPROM is set
+byte nodeID = 00; // Unique Node Identifier (2...254) - also the last byte of the IPv4 adress, not used if USE_EEPROM is set
 #define USE_EEPROM // read nodeID and network settings from EEPROM at bootup, overwrites nodeID and MAC.
 #define LEDPIN 6
 
@@ -22,7 +22,7 @@ Adafruit_NeoPixel leds = Adafruit_NeoPixel(8, LEDPIN, NEO_GRB + NEO_KHZ800);
 RF24 radio(A0,10); // CE, CS. CE at pin A0, CSN at pin 10
 RF24Network network(radio);
 
-static uint16_t this_node = 01; // always begin with 0 for octal declaration
+static uint16_t this_node = 00; // always begin with 0 for octal declaration
 short node_prime = 79; // 83, 89, 97
 unsigned long iterations=0;
 unsigned long errors=0;
@@ -119,7 +119,7 @@ void setup(void)
   Serial.println(nodeID);
   Serial.print(F("Network ID (oct): "));
 #ifdef USE_EEPROM
-  static uint16_t this_node = ((int) EEPROM.read(16)) + ((int) (EEPROM.read(17)*256L));
+  static uint16_t this_node = ((int) EEPROM.read(15)*256) + ((int) (EEPROM.read(16)));
   Serial.print(F("EEPROM, "));
 #endif
   Serial.print(this_node,OCT);
