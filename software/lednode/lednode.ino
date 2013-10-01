@@ -38,11 +38,12 @@ const short max_active_nodes = 32;
 uint16_t active_nodes[max_active_nodes];
 short num_active_nodes = 0;
 short next_ping_node_index = 0;
-const unsigned long interval = 30000;
+const unsigned long interval = 200;
 unsigned long last_time_sent;
 unsigned long updates = 0;
 void add_node(uint16_t node);
 boolean send_T(uint16_t to);
+void send_L1(int to, int _b);
 void handle_L(RF24NetworkHeader& header);
 void handle_T(RF24NetworkHeader& header);
 void handle_B(RF24NetworkHeader& header);
@@ -92,7 +93,7 @@ void ledst(int sta=127){
   leds.setPixelColor(0, c);
   leds.show();
 }
-
+bool strobe=1;
 void setup(void)
 {
   pinMode(A6, INPUT); // some nodes have a sense wire to the 3v3 for the NRF24 module via external LDO
@@ -105,12 +106,10 @@ void setup(void)
   digitalWrite(2, HIGH); // Vcc for the NRF24 module activated. Shutdown with LOW.
   Serial.begin(115200);
   delay(128); // wait for the serial interface to boot up
-  SPI.begin(); // SPI for the NRF24
-  radio.begin(); // init of the NRF24
-  // The amplifier gain can be set to RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_MAX=0dBm.
-  radio.setPALevel(RF24_PA_MAX); // transmitter gain value (see above)
-  
-  #ifdef USE_EEPROM
+  while (!Serial) {
+    ; // wait for serial port to connect. Needed for Leonardo only
+  }
+    #ifdef USE_EEPROM
   nodeID=EEPROM.read(0);
   Serial.print(F("EEPROM, "));
 #endif
@@ -124,6 +123,10 @@ void setup(void)
   Serial.print(", (dec): ");
   Serial.print(this_node,DEC);
   Serial.println();
+  SPI.begin(); // SPI for the NRF24
+  radio.begin(); // init of the NRF24
+  // The amplifier gain can be set to RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_MAX=0dBm.
+  radio.setPALevel(RF24_PA_MAX); // transmitter gain value (see above)
   network.begin( 1, this_node ); // fixed radio channel, node ID
   Serial.print(F("UID: "));
   p("%010ld: Starting up\n", millis());
@@ -146,6 +149,32 @@ void setup(void)
   radio.printDetails(); // print NRF config registers. Does not work with NRF24network right now?!
   
 }
+PROGMEM prog_uchar red[]=
+{255,0,0,
+255,0,0,
+255,0,0,
+255,0,0,
+255,0,0,
+255,0,0,
+255,0,0,
+255,0,0};
+PROGMEM prog_uchar blue[]=
+{0,0,255,
+0,0,255,
+0,0,255,
+0,0,255,
+0,0,255,
+0,0,255,
+0,0,255,
+0,0,255};
+byte pat1[]={10,0,0,
+10,10,0,
+0,10,0,
+0,10,10,
+0,0,10,
+10,0,10,
+10,5,0,
+5,16,5};
 
 void loop(void)
 {
@@ -229,41 +258,16 @@ void loop(void)
        Serial.println(p_recv*100/(p_sent-1));
        */
     }
-    to = 01;
-  /*  if ( to != this_node) {      
-      byte ledmap[24]={
-        1,2,3,
-        0,0,50,
-        0,0,0,
-        0,0,75,
-        0,0,0,
-        0,0,100,
-        0,0,0,
-        0,0,125,      };
-      Serial.println();
-      for(uint16_t i=0; i<sizeof(ledmap); i++) { // print out the received packet via serial
-        Serial.print(ledmap[i]);
-        Serial.print(" ");
-      }
-      Serial.println();
-
-      nowM = micros();
-      ok = send_L(to, ledmap);
-      p(" in %ld us.\n", (micros()-nowM) );
-      if (ok){
-      }
-      if (!ok)
-      {
-        //last_time_sent -= node_prime; // random awesomeness to stop packets from colliding (at least it tries to)
-        p("%010ld: send_L timout.\n", millis()); // An error occured, need to stahp!
-      }
-      ledst();
+    if ( this_node == 00){
+    for (short _i=0; _i<num_active_nodes; _i++) {
+    send_L1(active_nodes[_i],strobe*255);
     }
- */   
+    strobe=!strobe;
+    }
   }
 }
-/*
-C voltage (1-24 byte) fixed point values
+/* WIP DRAFT, TBD
+ C voltage (1-24 byte) fixed point values
  D current (1-24 byte) fixed point values
  E battery voltage (2 byte)
  F error code + error value
@@ -273,6 +277,51 @@ C voltage (1-24 byte) fixed point values
  V software version, UID, wID, location
  B reply with the just received timestamp (T->B)
  */
+void send_L1(int to, int _b = 0){
+  if ( to != this_node) {      
+     /* byte ledmap[24]={
+        1,2,3,
+        15,(((byte) millis()&0xFF)/10),(((byte) millis()+127&0xFF)/10),
+        5,15,5,
+        0,5,15,
+        15,5,0,
+        5,15,5,
+        0,5,15,
+        5,0,(((byte) millis()&0xFF)/10)};
+        
+        ledmap[min(23,to*3)]=((byte) millis()&0xFF);
+     */
+     
+     byte ledmap[24]={
+        1,2,3,
+        (((byte) (millis()+64)&0xFF)),(((byte) millis()&0xFF)),(((byte) (millis()+128)&0xFF)),
+        0,0,_b,
+        0,0,_b,
+        0,0,_b,
+        0,0,_b,
+        0,0,_b,
+        0,(((byte) millis()&0xFF)/5),0};
+        
+/*      Serial.println();
+        for(uint16_t i=0; i<sizeof(ledmap); i++) { // print out the packet via serial
+        Serial.print(ledmap[i]);
+        Serial.print(" ");
+      }
+      Serial.println();
+*/
+      unsigned long now = millis();
+      bool ok = send_L(to, ledmap);
+      p(" in %ld ms.\n", (millis()-now) );
+      if (ok){
+      }
+      if (!ok)
+      {
+        p("%010ld: send_L timout.\n", millis()); // An error occured..
+      }
+      ledst();
+    }
+  }
+    
 boolean send_T(uint16_t to) // Send out this nodes' time -> Timesync!
 {
   p("%010ld: Sent 'T' to   %05o", millis(),to);
@@ -320,8 +369,11 @@ void handle_T(RF24NetworkHeader& header)
   if(header.from_node != this_node)
   {
     RF24NetworkHeader header2(header.from_node/*header.from_node*/,'B');
+    unsigned long nowM = micros();
     if(network.write(header2,&time,sizeof(time)))
-      p("%010ld: Answ 'B' to   %05o\n", millis(),header.from_node);
+      p("%010ld: Answ 'B' to   %05o in ", millis(),header.from_node);
+      Serial.print(micros()-nowM-16);
+      Serial.print(F(" us.\n"));
   }
 }
 
@@ -343,7 +395,7 @@ void p(char *fmt, ... ){
   Serial.print(tmp);
 }
 
-void add_node(uint16_t node)
+void add_node(uint16_t node) //TODO: remove_node, after a certain timeout...
 {
   short i = num_active_nodes;
   while (i--)

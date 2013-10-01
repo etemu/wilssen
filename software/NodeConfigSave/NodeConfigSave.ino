@@ -8,7 +8,7 @@
 #include <EEPROM.h>
 
 // Change these values according to your network setup:
-static int wID = 011; // Wireless mesh networt ID, octal value from 00 to 05555
+static int wID = 00; // Wireless mesh networt ID, octal value from 00 to 05555
 static byte wirelessID[] = {(wID >> 8) & 0xFF, wID & 0xFF}; //TODO: verify endianess
 static byte nodeID = wirelessID[1]; // range: 2-254
 static byte mac[] = { 0xAE, 0xAD, 0x42, 0x13, 0x37, nodeID }; // choose a unique MAC
