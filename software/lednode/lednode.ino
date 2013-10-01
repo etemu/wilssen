@@ -6,7 +6,6 @@
 #include <Adafruit_NeoPixel.h>
 #include <EEPROM.h>
 #define DEBUG 1 // debug mode with verbose output over serial at 115200 bps
-byte nodeID = 00; // Unique Node Identifier (2...254) - also the last byte of the IPv4 adress, not used if USE_EEPROM is set
 #define USE_EEPROM // read nodeID and network settings from EEPROM at bootup, overwrites nodeID and MAC.
 #define LEDPIN 6
 
@@ -22,7 +21,8 @@ Adafruit_NeoPixel leds = Adafruit_NeoPixel(8, LEDPIN, NEO_GRB + NEO_KHZ800);
 RF24 radio(A0,10); // CE, CS. CE at pin A0, CSN at pin 10
 RF24Network network(radio);
 
-static uint16_t this_node = 00; // always begin with 0 for octal declaration
+byte nodeID = 1; // Unique Node Identifier (2...254) - also the last byte of the IPv4 adress, not used if USE_EEPROM is set
+uint16_t this_node = 00; // always begin with 0 for octal declaration
 short node_prime = 79; // 83, 89, 97
 unsigned long iterations=0;
 unsigned long errors=0;
@@ -38,7 +38,7 @@ const short max_active_nodes = 32;
 uint16_t active_nodes[max_active_nodes];
 short num_active_nodes = 0;
 short next_ping_node_index = 0;
-const unsigned long interval = 1000;
+const unsigned long interval = 30000;
 unsigned long last_time_sent;
 unsigned long updates = 0;
 void add_node(uint16_t node);
@@ -107,25 +107,25 @@ void setup(void)
   delay(128); // wait for the serial interface to boot up
   SPI.begin(); // SPI for the NRF24
   radio.begin(); // init of the NRF24
-  // radio.printDetails(); // print NRF config registers. Does not work with NRF24network right now?!
   // The amplifier gain can be set to RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_MAX=0dBm.
   radio.setPALevel(RF24_PA_MAX); // transmitter gain value (see above)
-  network.begin( 1, this_node ); // fixed radio channel, node ID
-  Serial.print(F("UID: "));
-#ifdef USE_EEPROM
+  
+  #ifdef USE_EEPROM
   nodeID=EEPROM.read(0);
   Serial.print(F("EEPROM, "));
 #endif
   Serial.println(nodeID);
   Serial.print(F("Network ID (oct): "));
 #ifdef USE_EEPROM
-  static uint16_t this_node = ((int) EEPROM.read(15)*256) + ((int) (EEPROM.read(16)));
+  this_node = ((int) EEPROM.read(15)*256) + ((int) (EEPROM.read(16)));
   Serial.print(F("EEPROM, "));
 #endif
   Serial.print(this_node,OCT);
   Serial.print(", (dec): ");
   Serial.print(this_node,DEC);
   Serial.println();
+  network.begin( 1, this_node ); // fixed radio channel, node ID
+  Serial.print(F("UID: "));
   p("%010ld: Starting up\n", millis());
   colorWipe(leds.Color(100, 0, 0), 100); // Red
   colorWipe(leds.Color(0, 100, 0), 100); // Green
@@ -143,6 +143,8 @@ void setup(void)
   ledupdate(ledmap);
   colorWipe(leds.Color(0, 0, 0), 0); // clear
   ledst(1);
+  radio.printDetails(); // print NRF config registers. Does not work with NRF24network right now?!
+  
 }
 
 void loop(void)
@@ -228,7 +230,7 @@ void loop(void)
        */
     }
     to = 01;
-    if ( to != this_node) {      
+  /*  if ( to != this_node) {      
       byte ledmap[24]={
         1,2,3,
         0,0,50,
@@ -256,7 +258,8 @@ void loop(void)
         p("%010ld: send_L timout.\n", millis()); // An error occured, need to stahp!
       }
       ledst();
-    }   
+    }
+ */   
   }
 }
 /*
