@@ -21,6 +21,8 @@ Adafruit_NeoPixel leds = Adafruit_NeoPixel(8, LEDPIN, NEO_GRB + NEO_KHZ800);
 RF24 radio(A0,10); // CE, CS. CE at pin A0, CSN at pin 10
 RF24Network network(radio);
 
+const unsigned long interval = 200;
+byte sweep=0;
 byte nodeID = 1; // Unique Node Identifier (2...254) - also the last byte of the IPv4 adress, not used if USE_EEPROM is set
 uint16_t this_node = 00; // always begin with 0 for octal declaration
 short node_prime = 79; // 83, 89, 97
@@ -38,7 +40,6 @@ const short max_active_nodes = 32;
 uint16_t active_nodes[max_active_nodes];
 short num_active_nodes = 0;
 short next_ping_node_index = 0;
-const unsigned long interval = 200;
 unsigned long last_time_sent;
 unsigned long updates = 0;
 void add_node(uint16_t node);
@@ -258,9 +259,12 @@ void loop(void)
        Serial.println(p_recv*100/(p_sent-1));
        */
     }
+    sweep+=20;
+    if (sweep>254) sweep=0;
+    
     if ( this_node == 00){
     for (short _i=0; _i<num_active_nodes; _i++) {
-    send_L1(active_nodes[_i],strobe*255);
+    send_L1(active_nodes[_i],(byte) sweep&0xFF);
     }
     strobe=!strobe;
     }
@@ -294,13 +298,17 @@ void send_L1(int to, int _b = 0){
      
      byte ledmap[24]={
         1,2,3,
-        (((byte) (millis()+64)&0xFF)),(((byte) millis()&0xFF)),(((byte) (millis()+128)&0xFF)),
         0,0,_b,
         0,0,_b,
         0,0,_b,
         0,0,_b,
         0,0,_b,
-        0,(((byte) millis()&0xFF)/5),0};
+        0,0,_b,
+        0,(((byte) millis()&0xFF)/5),_b};
+        
+        //ledmap[min(23,to+3)]=((byte) sweep&0xFF);
+        //ledmap[min(23,to+4)]=(((byte) sweep+127)&0xFF);
+        //ledmap[min(23,to+5)]=(((byte) sweep)&0xFF);
         
 /*      Serial.println();
         for(uint16_t i=0; i<sizeof(ledmap); i++) { // print out the packet via serial
