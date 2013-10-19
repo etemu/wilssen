@@ -21,11 +21,10 @@ Adafruit_NeoPixel leds = Adafruit_NeoPixel(8, LEDPIN, NEO_GRB + NEO_KHZ800);
 RF24 radio(A0,10); // CE, CS. CE at pin A0, CSN at pin 10
 RF24Network network(radio);
 
-const unsigned long interval = 200;
+const unsigned long interval = 2000;
 byte sweep=0;
 byte nodeID = 1; // Unique Node Identifier (2...254) - also the last byte of the IPv4 adress, not used if USE_EEPROM is set
 uint16_t this_node = 00; // always begin with 0 for octal declaration
-short node_prime = 79; // 83, 89, 97
 unsigned long iterations=0;
 unsigned long errors=0;
 unsigned int loss=0;
@@ -204,9 +203,11 @@ void loop(void)
       break;      
     default:
       network.read(header,0,0);
+      if (DEBUG) {
       Serial.print(F("            undefined packet type: "));
       Serial.print(header.type);
       Serial.println();
+      }
       break;
     };
     ledst();
@@ -223,7 +224,9 @@ void loop(void)
      Serial.print(nowM); //micros();
      Serial.print("\n"); //new line
      */
-    p("%010ld: %ld net updates/s\n",millis(),updates*1000/interval);
+    if (DEBUG) {
+      p("%010ld: %ld net updates/s\n",millis(),updates*1000/interval);
+    }
     updates = 0;
     last_time_sent = now;
     uint16_t to = 000;
@@ -232,15 +235,19 @@ void loop(void)
     {
       unsigned long nowM = micros();
       ok = send_T(to);
+      if (DEBUG) {
       p(" in %ld us.\n", (micros()-nowM) );
+      }
       if (ok){
         p_sent++;
       }
       if (!ok)
       {
         errors++;
+        if (DEBUG) {
         //last_time_sent -= node_prime; // random awesomeness to stop packets from colliding (at least it tries to)
         p("%010ld: No ACK timeout.\n", millis()); // An error occured, need to stahp!
+        }
       }
 
       iterations++;
@@ -319,6 +326,7 @@ void send_L1(int to, int _b = 0){
 */
       unsigned long now = millis();
       bool ok = send_L(to, ledmap);
+      if (DEBUG) {
       p(" in %ld ms.\n", (millis()-now) );
       if (ok){
       }
@@ -326,13 +334,16 @@ void send_L1(int to, int _b = 0){
       {
         p("%010ld: send_L timout.\n", millis()); // An error occured..
       }
+      }
       ledst();
     }
   }
     
 boolean send_T(uint16_t to) // Send out this nodes' time -> Timesync!
 {
+  if (DEBUG) {
   p("%010ld: Sent 'T' to   %05o", millis(),to);
+  }
   RF24NetworkHeader header(to,'T');
   unsigned long time = micros();
   return network.write(header,&time,sizeof(time));
@@ -340,7 +351,9 @@ boolean send_T(uint16_t to) // Send out this nodes' time -> Timesync!
 
 boolean send_L(uint16_t to, byte* ledmap) // Send out an LED map
 {
+  if (DEBUG) {
   p("%010ld: Sent 'L' to   %05o", millis(),to);
+  }
   RF24NetworkHeader header(to,'L');
   return network.write(header,ledmap,24);
 }
@@ -358,7 +371,9 @@ void handle_L(RF24NetworkHeader& header)
 {
   byte ledmap[24];
   network.read(header,ledmap,sizeof(ledmap));
+  if (DEBUG) {
   p("%010ld: Recv 'L' from %05o\n", millis(), header.from_node);
+  }
   ledupdate(ledmap);
 
   for(uint16_t i=0; i<sizeof(ledmap); i++) { // print out the received packet via serial
@@ -372,16 +387,20 @@ void handle_T(RF24NetworkHeader& header)
 {
   unsigned long time;
   network.read(header,&time,sizeof(time));
+  if (DEBUG) {
   p("%010ld: Recv 'T' from %05o:%010ld\n", millis(), header.from_node, time);
+  }
   add_node(header.from_node);  
   if(header.from_node != this_node)
   {
     RF24NetworkHeader header2(header.from_node/*header.from_node*/,'B');
     unsigned long nowM = micros();
     if(network.write(header2,&time,sizeof(time)))
+    if (DEBUG) {
       p("%010ld: Answ 'B' to   %05o in ", millis(),header.from_node);
       Serial.print(micros()-nowM-16);
       Serial.print(F(" us.\n"));
+    }
   }
 }
 
@@ -390,7 +409,9 @@ void handle_B(RF24NetworkHeader& header)
   p_recv++;
   unsigned long ref_time;
   network.read(header,&ref_time,sizeof(ref_time));
+  if (DEBUG) {
   p("%010ld: Recv 'B' from %05o -> %ldus round trip\n", millis(), header.from_node, micros()-ref_time);
+  }
 }
 
 // Arduino version of the printf()-funcition in C 
@@ -411,7 +432,9 @@ void add_node(uint16_t node) //TODO: remove_node, after a certain timeout...
   if ( i == -1 && num_active_nodes < max_active_nodes )  // If not and there is enough place, add it to the table
   {
     active_nodes[num_active_nodes++] = node; 
+    if (DEBUG) {
     p("%010ld: Add new node: %05o\n", millis(), node);
+    }
   }
 }
 
