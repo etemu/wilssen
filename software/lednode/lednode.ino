@@ -15,7 +15,7 @@ Adafruit_NeoPixel leds = Adafruit_NeoPixel(8, LEDPIN, NEO_GRB + NEO_KHZ800); // 
 RF24 radio(A0,10); // CE, CS. CE at pin A0, CSN at pin 10
 RF24Network network(radio); // mesh network layer 
 
-const unsigned long interval = 2000; // KEEPALIVE interval in [ms]
+const unsigned long interval = 10000; // KEEPALIVE interval in [ms]
 byte sweep=0;
 byte nodeID = 1; // Unique Node Identifier (2...254) - also the last byte of the IPv4 adress, not used if USE_EEPROM is set
 uint16_t this_node = 00; // always begin with 0 for octal declaration, not used if USE_EEPROM is set
@@ -35,7 +35,7 @@ uint16_t active_nodes[max_active_nodes];
 short num_active_nodes = 0;
 short next_ping_node_index = 0;
 unsigned long last_time_sent;
-unsigned int updates = 0; // has to be changed to unsigned long if the interval is too long
+unsigned long updates = 0; // has to be changed to unsigned long if the interval is too long
 void add_node(uint16_t node);
 boolean send_T(uint16_t to);
 void send_L1(int to, int _b);
@@ -139,11 +139,11 @@ void setup(void)
     100,50,50,
     100,50,50,
     100,50,50,
-    0,150,0    };
+    0,150,0      };
   ledupdate(ledmap);
   colorWipe(leds.Color(0, 0, 0), 0); // clear
   ledst(1);
-  radio.printDetails(); // print NRF config registers. Does not work with NRF24network right now?!
+  //  radio.printDetails(); // print NRF config registers. Does not work with NRF24network right now?!
 
 }
 
@@ -199,7 +199,7 @@ void loop(void)
      Serial.print("\n"); //new line
      */
     if (DEBUG) {
-      p("%010ld: %ld net updates/s\n",millis(),updates*1000/interval);
+      p("%010ld: %ld fps\n",millis(),updates*1000/interval);
     }
     updates = 0;
     last_time_sent = now;
@@ -287,7 +287,7 @@ void send_L1(int to, int _b = 0){
       0,0,_b,
       0,0,_b,
       0,0,_b,
-      0,(((byte) millis()&0xFF)/5),_b    };
+      0,(((byte) millis()&0xFF)/5),_b        };
 
     //ledmap[min(23,to+3)]=((byte) sweep&0xFF);
     //ledmap[min(23,to+4)]=(((byte) sweep+127)&0xFF);
@@ -349,7 +349,17 @@ void handle_K(RF24NetworkHeader& header)
   if (DEBUG) {
     p("%010ld: Recv 'K' from %05o\n", millis(), header.from_node);
   }
-  ledupdate(kmap);
+  byte ledmap[24]={
+    000,000,000, // status LED at 0
+    kmap[0],kmap[1],kmap[2], // acc values
+    kmap[3],kmap[3],kmap[3], // gyro x
+    kmap[4],kmap[4],kmap[4], // gyro y...
+    kmap[5],kmap[5],kmap[5],    
+    000,000,00,
+    000,000,00,
+    000,000,0      };
+  ledupdate(ledmap);
+
   if (DEBUG) {
     for(uint16_t i=0; i<sizeof(kmap); i++) { // print out the received packet via serial
       Serial.print(kmap[i]);
@@ -461,5 +471,6 @@ void colorWipe(uint32_t c, uint8_t wait) { //this is blocking with the hardcoded
     delay(wait);
   }
 }
+
 
 
