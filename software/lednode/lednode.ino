@@ -146,35 +146,6 @@ void setup(void)
   radio.printDetails(); // print NRF config registers. Does not work with NRF24network right now?!
 
 }
-PROGMEM prog_uchar red[]=
-{
-  255,0,0,
-  255,0,0,
-  255,0,0,
-  255,0,0,
-  255,0,0,
-  255,0,0,
-  255,0,0,
-  255,0,0};
-PROGMEM prog_uchar blue[]=
-{
-  0,0,255,
-  0,0,255,
-  0,0,255,
-  0,0,255,
-  0,0,255,
-  0,0,255,
-  0,0,255,
-  0,0,255};
-byte pat1[]={
-  10,0,0,
-  10,10,0,
-  0,10,0,
-  0,10,10,
-  0,0,10,
-  10,0,10,
-  10,5,0,
-  5,16,5};
 
 void loop(void)
 {
