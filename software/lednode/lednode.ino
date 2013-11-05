@@ -8,7 +8,7 @@
 #define DEBUG 1 // debug mode with verbose output over serial at 115200 bps
 #define USE_EEPROM // read nodeID and network settings from EEPROM at bootup, overwrites nodeID and MAC.
 #define LEDPIN 6
-
+#define KEEPALIVE 0 // keep connections alive with regular polling to node 0
 // Parameter 1 = number of pixels in strip
 // Parameter 2 = pin number (most are valid)
 // Parameter 3 = pixel type flags, add together as needed:
@@ -20,6 +20,7 @@ Adafruit_NeoPixel leds = Adafruit_NeoPixel(8, LEDPIN, NEO_GRB + NEO_KHZ800);
 
 RF24 radio(A0,10); // CE, CS. CE at pin A0, CSN at pin 10
 RF24Network network(radio);
+
 
 const unsigned long interval = 2000;
 byte sweep=0;
@@ -185,13 +186,16 @@ void loop(void)
 
   network.update();
   updates++;
-  while ( network.available() ) // while there is some shit filling our pipe
+  while ( network.available() ) // while there are packets in the FIFO buffer
   {
-    ledst(3);
-    RF24NetworkHeader header;
+    ledst(3); // light up status LED with pattern #3
+    RF24NetworkHeader header; // initialize header
     network.peek(header); // preview the header, but don't advance nor flush the packet
-    switch (header.type)
+    switch (header.type) // check which packet type we received
     {
+    case 'K':
+      handle_K(header);
+      break;
     case 'L':
       handle_L(header);
       break;
@@ -202,23 +206,23 @@ void loop(void)
       handle_B(header);
       break;      
     default:
-      network.read(header,0,0);
+      network.read(header,0,0); // if none of the above packet types matched, read out and flush the buffer
       if (DEBUG) {
-      Serial.print(F("            undefined packet type: "));
+      Serial.print(F("            undefined packet type: ")); // print the unrecognized packet type
       Serial.print(header.type);
       Serial.println();
       }
       break;
     };
-    ledst();
+    ledst(); // reset the status LED to the default pattern
   }
 
   unsigned long now = millis();
   unsigned long nowM = micros();
-  if ( now - last_time_sent >= interval ) // non-blocking
+  if ( now - last_time_sent >= interval ) // non-blocking check for start of debug service routine interval
   {
     ledst(2);
-    /*
+    /* // unsigned long int rollover checking:
     Serial.print(microsRollover()); // how many times has the unsigned long micros() wrapped?
      Serial.print(":"); //separator 
      Serial.print(nowM); //micros();
@@ -229,6 +233,7 @@ void loop(void)
     }
     updates = 0;
     last_time_sent = now;
+    if (KEEPALIVE) {
     uint16_t to = 000;
     bool ok = 0;
     if ( to != this_node)
@@ -245,11 +250,10 @@ void loop(void)
       {
         errors++;
         if (DEBUG) {
-        //last_time_sent -= node_prime; // random awesomeness to stop packets from colliding (at least it tries to)
         p("%010ld: No ACK timeout.\n", millis()); // An error occured, need to stahp!
         }
       }
-
+      
       iterations++;
       /*
       Serial.print("loop: \t\t");
@@ -265,6 +269,7 @@ void loop(void)
        Serial.print("replies in %: \t");
        Serial.println(p_recv*100/(p_sent-1));
        */
+       }
     }
     sweep+=20;
     if (sweep>254) sweep=0;
@@ -283,6 +288,7 @@ void loop(void)
  E battery voltage (2 byte)
  F error code + error value
  G 
+ K draft for home automation packet
  L LED map
  T send out timestamp
  V software version, UID, wID, location
@@ -366,6 +372,22 @@ void ledupdate(byte* ledmap){
   leds.show();
 }
 
+void handle_K(RF24NetworkHeader& header)
+{
+  byte kmap[24];
+  network.read(header,kmap,sizeof(kmap));
+  if (DEBUG) {
+  p("%010ld: Recv 'K' from %05o\n", millis(), header.from_node);
+  }
+  ledupdate(kmap);
+if (DEBUG) {
+  for(uint16_t i=0; i<sizeof(kmap); i++) { // print out the received packet via serial
+    Serial.print(kmap[i]);
+    Serial.print(" ");
+  }
+  Serial.println();
+  }
+}
 
 void handle_L(RF24NetworkHeader& header)
 {
@@ -375,12 +397,13 @@ void handle_L(RF24NetworkHeader& header)
   p("%010ld: Recv 'L' from %05o\n", millis(), header.from_node);
   }
   ledupdate(ledmap);
-
+  if (DEBUG) {
   for(uint16_t i=0; i<sizeof(ledmap); i++) { // print out the received packet via serial
     Serial.print(ledmap[i]);
     Serial.print(" ");
   }
   Serial.println();
+  }
 }
 
 void handle_T(RF24NetworkHeader& header)
@@ -433,7 +456,7 @@ void add_node(uint16_t node) //TODO: remove_node, after a certain timeout...
   {
     active_nodes[num_active_nodes++] = node; 
     if (DEBUG) {
-    p("%010ld: Add new node: %05o\n", millis(), node);
+    p("%010ld: New node: %05o\n", millis(), node);
     }
   }
 }
