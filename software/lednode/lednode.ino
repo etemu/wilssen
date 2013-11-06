@@ -243,11 +243,17 @@ void loop(void)
     }
     sweep+=20;
     if (sweep>254) sweep=0;
-
+    /*
     if ( this_node == 00){
       for (short _i=0; _i<num_active_nodes; _i++) {
         send_L1(active_nodes[_i],(byte) sweep&0xFF);
       }
+      strobe=!strobe;
+    }
+    */
+    if ( this_node == 00){
+      send_L1(01,(byte) sweep&0xFF);
+      //send_L1(00,(byte) sweep&0xFF);
       strobe=!strobe;
     }
   }
