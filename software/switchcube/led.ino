@@ -72,3 +72,11 @@ byte pat1[]={
   10,0,10,
   10,5,0,
   5,16,5};
+
+void colorWipe(uint32_t c, uint8_t wait) { //this is blocking with the hardcoded delay...
+  for(uint16_t i=0; i<leds.numPixels(); i++) {
+    leds.setPixelColor(i, c);
+    leds.show();
+    delay(wait);
+  }
+}

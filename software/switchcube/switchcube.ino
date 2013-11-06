@@ -1,4 +1,15 @@
 
+// I2Cdev and MPU6050 must be installed as libraries, or else the .cpp/.h files
+// for both classes must be in the include path of the project
+#include "I2Cdev.h"
+#include "MPU6050.h"
+
+// Arduino Wire library is required if I2Cdev I2CDEV_ARDUINO_WIRE implementation
+// is used in I2Cdev.h
+#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
+#include "Wire.h"
+#endif
+
 #include <RF24Network.h>
 #include <RF24.h>
 #include <SPI.h>
@@ -46,25 +57,60 @@ void handle_B(RF24NetworkHeader& header);
 void ledupdate(byte* ledmap);
 void p(char *fmt, ... );
 void ledst(int sta=127);
-
+void mpucheck();
 bool strobe=1; 
 
-void setup(void)
-{
+// class default I2C address is 0x68
+// specific I2C addresses may be passed as a parameter here
+// AD0 low = 0x68 (default)
+// AD0 high = 0x69
+MPU6050 mpu;
+//MPU6050 mpu(0x69); // <-- use for AD0 high
+
+int16_t ax, ay, az; // accel values
+int16_t gx, gy, gz; // gyro values
+
+// uncomment "OUTPUT_READABLE_mpu" if you want to see a tab-separated
+// list of the accel X/Y/Z and then gyro X/Y/Z values in decimal. Easy to read,
+// not so easy to parse, and slow(er) over UART.
+#define OUTPUT_READABLE_mpu
+
+// uncomment "OUTPUT_BINARY_mpu" to send all 6 axes of data as 16-bit
+// binary, one right after the other. This is very fast (as fast as possible
+// without compression or data loss), and easy to parse, but impossible to read
+// for a human.
+// #define OUTPUT_BINARY_mpu
+
+#define STATUS_LED_PIN 5
+bool blinkState = false;
+
+void setup() {
+  pinMode(3,OUTPUT);
+  digitalWrite(3, HIGH); // Vcc for MPU6050  
   pinMode(A6, INPUT); // some nodes have a sense wire to the 3v3 for the NRF24 module via external LDO
   pinMode(A7, INPUT); // see above
   leds.begin(); // the 8 LEDs
   leds.show(); // Initialize all pixels to 'off'
+  ledst(5);
   pinMode(A1, OUTPUT); // GND for the NRF24 module
   digitalWrite(A1, LOW); // GND for the NRF24 module
   pinMode(2, OUTPUT); // Vcc for the NRF24 module, 3.5-5V output to an LDO supplying 3.3V
   digitalWrite(2, HIGH); // Vcc for the NRF24 module activated. Shutdown with LOW.
-  Serial.begin(115200);
-  delay(128); // wait for the serial interface to boot up
-  while (!Serial) {
-    ; // wait for serial port to connect.
-  }
-#ifdef USE_EEPROM
+  Serial.begin(115200); // initialize serial communication
+  delay(128);
+  // initialize devices
+  Serial.println(F("Initializing devices..."));
+#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
+  Serial.println(F("I2CSetup"));
+  Wire.begin(); // join I2C bus (I2Cdev library doesn't do this automatically)
+#elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
+  Serial.println(F("FastwireSetup"));
+  Fastwire::setup(400, true);
+#endif
+  Serial.println(F("mpu.initialize"));
+  mpu.initialize();
+  ledst(4);
+  #ifdef USE_EEPROM
   nodeID=EEPROM.read(0);
   Serial.print(F("EEPROM, "));
 #endif
@@ -85,16 +131,64 @@ void setup(void)
   network.begin( 1, this_node ); // fixed radio channel, node ID
   Serial.print(F("UID: \n"));
   p("%010ld: Starting up\n", millis());
-  colorWipe(leds.Color(100, 0, 0), 100); // Red
-  colorWipe(leds.Color(0, 100, 0), 100); // Green
-  colorWipe(leds.Color(0, 0, 100), 100); // Blue
+  colorWipe(leds.Color(100, 0, 0), 50); // Red
+  colorWipe(leds.Color(0, 100, 0), 50); // Green
+  colorWipe(leds.Color(0, 0, 100), 50); // Blue
   colorWipe(leds.Color(0, 0, 0), 0); // clear
+  ledst(5);
+  
+  // verify connection
+  Serial.println(F("testing I2C device connections..."));
+  Serial.println(mpu.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
+  mpu.setDLPFMode(6); // 5Hz low pass
+  // mpu.setDHPFMode(4); // 0.625Hz high pass
+  mpu.setFullScaleAccelRange(2); // 3: 16G
+  mpu.setFullScaleGyroRange(3); // 2000deg/s
+  //    Wire.write(0x16);            // register DLPF_CFG - low pass filter configuration & sample rate
+  //    Wire.write(0x1D);            //   10Hz Low Pass Filter Bandwidth - Internal Sample Rate 1kHz
+
+  Serial.println(F("Reading/Updating internal sensor offsets..."));
+  // -76	-2359	1688	0	0	0
+  //-596	-585	664	0	0	0
+  Serial.print(mpu.getXAccelOffset()); 
+  Serial.print(F("\t")); // -76
+  Serial.print(mpu.getYAccelOffset()); 
+  Serial.print(F("\t")); // -2359
+  Serial.print(mpu.getZAccelOffset()); 
+  Serial.print(F("\t")); // 1688
+  Serial.print(mpu.getXGyroOffset()); 
+  Serial.print(F("\t")); // 0
+  Serial.print(mpu.getYGyroOffset()); 
+  Serial.print(F("\t")); // 0
+  Serial.print(mpu.getZGyroOffset()); 
+  Serial.print(F("\t")); // 0
+  Serial.print(F("\n"));
+
+  // change accel/gyro offset values
+  mpu.setXGyroOffset(21);
+  mpu.setYGyroOffset(7);
+  mpu.setZGyroOffset(9);
+  
+  Serial.print(mpu.getXAccelOffset()); 
+  Serial.print(F("\t")); // -76
+  Serial.print(mpu.getYAccelOffset()); 
+  Serial.print(F("\t")); // -2359
+  Serial.print(mpu.getZAccelOffset()); 
+  Serial.print(F("\t")); // 1688
+  Serial.print(mpu.getXGyroOffset()); 
+  Serial.print(F("\t")); // 0
+  Serial.print(mpu.getYGyroOffset()); 
+  Serial.print(F("\t")); // 0
+  Serial.print(mpu.getZGyroOffset()); 
+  Serial.print(F("\t")); // 0
+  Serial.print(F("\n"));
+
+  // configure Arduino LED for output
+  pinMode(STATUS_LED_PIN, OUTPUT);
   ledst(1);
-  //  radio.printDetails(); // print NRF config registers. Does not work with NRF24network right now?!
 }
 
-void loop(void)
-{
+void loop() {
   network.update();
   updates++;
   while ( network.available() ) // while there are packets in the FIFO buffer
@@ -176,7 +270,7 @@ void loop(void)
          */
       }
     }
-    sweep+=20;
+    sweep+=100;
     if (sweep>254) sweep=0;
     /*
     if ( this_node == 00){
@@ -187,161 +281,10 @@ void loop(void)
     }
     */
     if ( this_node == 00){
-      send_L1(01,(byte) sweep&0xFF);
+      send_K(01);
       //send_L1(00,(byte) sweep&0xFF);
       strobe=!strobe;
     }
-  }
-}
-/* WIP DRAFT, TBD
- C voltage (1-24 byte) fixed point values
- D current (1-24 byte) fixed point values
- E battery voltage (2 byte)
- F error code + error value
- G 
- K draft for home automation packet
- L LED map
- T send out timestamp
- V software version, UID, wID, location
- B reply with the just received timestamp (T->B)
- */
- 
-void send_K(int to){
-   byte ledmap[24]={
-      1,2,3,
-      0,0,1,
-      0,0,1,
-      0,0,1,
-      0,0,1,
-      0,0,1,
-      0,0,1,
-      0,(((byte) millis()&0xFF)/5),1        };
-
-    unsigned long now = millis();
-    bool ok = send_L(to, ledmap);
-    if (DEBUG) {
-      p(" in %ld ms.\n", (millis()-now) );
-      if (ok){}
-      if (!ok) p("%010ld: send_K timout.\n", millis()); // An error occured..
-    }
-  }
- 
-void send_L1(int to, int _b = 0){
-  if ( to != this_node) {      
-    byte ledmap[24]={
-      1,2,3,
-      0,0,_b,
-      0,0,_b,
-      0,0,_b,
-      0,0,_b,
-      0,0,_b,
-      0,0,_b,
-      0,(((byte) millis()&0xFF)/5),_b        };
-
-    unsigned long now = millis();
-    bool ok = send_L(to, ledmap);
-    if (DEBUG) {
-      p(" in %ld ms.\n", (millis()-now) );
-      if (ok){}
-      if (!ok) p("%010ld: send_L timout.\n", millis()); // An error occured..
-    }
-    ledst();
-  }
-}
-
-boolean send_T(uint16_t to) // Send out this nodes' time -> Timesync!
-{
-  if (DEBUG) p("%010ld: Sent 'T' to   %05o", millis(),to);
-  RF24NetworkHeader header(to,'T');
-  unsigned long time = micros();
-  return network.write(header,&time,sizeof(time));
-}
-
-boolean send_L(uint16_t to, byte* ledmap) // Send out an LED map
-{
-  if (DEBUG) p("%010ld: Sent 'L' to   %05o", millis(),to);
-  RF24NetworkHeader header(to,'L');
-  return network.write(header,ledmap,24);
-}
-
-void ledupdate(byte* ledmap){
-  for(uint8_t i=0; i<leds.numPixels(); i++) {
-    uint32_t c = leds.Color(ledmap[i*3],ledmap[(i*3)+1],ledmap[(i*3)+2]);
-    leds.setPixelColor(i, c);
-  }
-  leds.show();
-}
-
-void handle_K(RF24NetworkHeader& header)
-{
-  byte kmap[24];
-  network.read(header,kmap,sizeof(kmap));
-  if (DEBUG) p("%010ld: Recv 'K' from %05o\n", millis(), header.from_node);
-  byte ledmap[24]={
-    000,000,000, // status LED at 0
-    kmap[0],kmap[1],kmap[2], // acc values
-    kmap[3],kmap[3],kmap[3], // gyro x
-    kmap[4],kmap[4],kmap[4], // gyro y...
-    kmap[5],kmap[5],kmap[5],    
-    000,000,00,
-    000,000,00,
-    000,000,0      };
-  ledupdate(ledmap);
-
-  if (DEBUG) {
-    for(uint16_t i=0; i<sizeof(kmap); i++) { // print out the received packet via serial
-      Serial.print(kmap[i]);
-      Serial.print(" ");
-    }
-    Serial.println();
-  }
-}
-
-void handle_L(RF24NetworkHeader& header)
-{
-  byte ledmap[24];
-  network.read(header,ledmap,sizeof(ledmap));
-  if (DEBUG) {
-    p("%010ld: Recv 'L' from %05o\n", millis(), header.from_node);
-  }
-  ledupdate(ledmap);
-  if (DEBUG) {
-    for(uint16_t i=0; i<sizeof(ledmap); i++) { // print out the received packet via serial
-      Serial.print(ledmap[i]);
-      Serial.print(" ");
-    }
-    Serial.println();
-  }
-}
-
-void handle_T(RF24NetworkHeader& header)
-{
-  unsigned long time;
-  network.read(header,&time,sizeof(time));
-  if (DEBUG) {
-    p("%010ld: Recv 'T' from %05o:%010ld\n", millis(), header.from_node, time);
-  }
-  add_node(header.from_node);  
-  if(header.from_node != this_node)
-  {
-    RF24NetworkHeader header2(header.from_node/*header.from_node*/,'B');
-    unsigned long nowM = micros();
-    if(network.write(header2,&time,sizeof(time)))
-      if (DEBUG) {
-        p("%010ld: Answ 'B' to   %05o in ", millis(),header.from_node);
-        Serial.print(micros()-nowM-16);
-        Serial.print(F(" us.\n"));
-      }
-  }
-}
-
-void handle_B(RF24NetworkHeader& header)
-{
-  p_recv++;
-  unsigned long ref_time;
-  network.read(header,&ref_time,sizeof(ref_time));
-  if (DEBUG) {
-    p("%010ld: Recv 'B' from %05o -> %ldus round trip\n", millis(), header.from_node, micros()-ref_time);
   }
 }
 
@@ -391,14 +334,4 @@ unsigned long microsRollover() { //based on Rob Faludi's (rob.faludi.com) milli 
   } 
   return microRollovers;
 }
-
-void colorWipe(uint32_t c, uint8_t wait) { //this is blocking with the hardcoded delay...
-  for(uint16_t i=0; i<leds.numPixels(); i++) {
-    leds.setPixelColor(i, c);
-    leds.show();
-    delay(wait);
-  }
-}
-
-
 
