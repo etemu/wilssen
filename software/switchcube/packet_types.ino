@@ -14,15 +14,21 @@
  
 void send_K(int to){
   mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+  byte axl=map(abs(ax),0,17000,0,255);
+  byte ayl=map(abs(ay),0,17000,0,255);
+  byte azl=map(abs(az),0,17000,0,255);
+  byte gxl=map(2*abs(gx),0,32767,0,255);
+  byte gyl=map(2*abs(gy),0,32767,0,255);
+  byte gzl=map(2*abs(gz),0,32767,0,255);
   byte kmap[24]={
     000,000,000, // status LED at 0
-    ax&0xFF,ay&0xFF,az&0xFF, // acc values
-    ax&0xFF,0,0, // gyro x
-    ay&0xFF,0,0, // gyro y...
-    az&0xFF,0,0,    
-    (byte) gx&0xFF,000,00,
-    (byte) gy&0xFF,000,00,
-    (byte) gz&0xFF,000,0      };
+    axl&0xFF,ayl&0xFF,azl&0xFF, // acc values
+    axl&0xFF,ayl&0xFF,azl&0xFF,
+    axl&0xFF,ayl&0xFF,azl&0xFF,
+    axl&0xFF,ayl&0xFF,azl&0xFF,    
+    gxl,gxl,gxl,
+    gyl,gyl,gyl,
+    gzl,gzl,gzl };
 
     unsigned long now = millis();
     bool ok = send_L(to, kmap);

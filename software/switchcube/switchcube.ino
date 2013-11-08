@@ -81,12 +81,9 @@ int16_t gx, gy, gz; // gyro values
 // for a human.
 // #define OUTPUT_BINARY_mpu
 
-#define STATUS_LED_PIN 5
-bool blinkState = false;
-
 void setup() {
-  pinMode(3,OUTPUT);
-  digitalWrite(3, HIGH); // Vcc for MPU6050  
+  pinMode(7,OUTPUT);
+  digitalWrite(7, HIGH); // Vcc for MPU6050  
   pinMode(A6, INPUT); // some nodes have a sense wire to the 3v3 for the NRF24 module via external LDO
   pinMode(A7, INPUT); // see above
   leds.begin(); // the 8 LEDs
@@ -94,8 +91,8 @@ void setup() {
   ledst(5);
   pinMode(A1, OUTPUT); // GND for the NRF24 module
   digitalWrite(A1, LOW); // GND for the NRF24 module
-  pinMode(2, OUTPUT); // Vcc for the NRF24 module, 3.5-5V output to an LDO supplying 3.3V
-  digitalWrite(2, HIGH); // Vcc for the NRF24 module activated. Shutdown with LOW.
+  pinMode(5, OUTPUT); // Vcc for the NRF24 module, 3.5-5V output to an LDO supplying 3.3V
+  digitalWrite(5, HIGH); // Vcc for the NRF24 module activated. Shutdown with LOW.
   Serial.begin(115200); // initialize serial communication
   delay(128);
   // initialize devices
@@ -142,7 +139,7 @@ void setup() {
   Serial.println(mpu.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
   mpu.setDLPFMode(6); // 5Hz low pass
   // mpu.setDHPFMode(4); // 0.625Hz high pass
-  mpu.setFullScaleAccelRange(2); // 3: 16G
+  mpu.setFullScaleAccelRange(0); //
   mpu.setFullScaleGyroRange(3); // 2000deg/s
   //    Wire.write(0x16);            // register DLPF_CFG - low pass filter configuration & sample rate
   //    Wire.write(0x1D);            //   10Hz Low Pass Filter Bandwidth - Internal Sample Rate 1kHz
@@ -184,7 +181,6 @@ void setup() {
   Serial.print(F("\n"));
 
   // configure Arduino LED for output
-  pinMode(STATUS_LED_PIN, OUTPUT);
   ledst(1);
 }
 

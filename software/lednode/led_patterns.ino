@@ -36,7 +36,7 @@ void ledst(int sta){
     c=leds.Color(0, 0, 255);
     break;
   default:
-    c=leds.Color(20, 2, 2);
+    c=leds.Color(3, 10, 3);
     break;
   }
   leds.setPixelColor(0, c);

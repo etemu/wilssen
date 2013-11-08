@@ -5,17 +5,17 @@
 #include <stdarg.h>
 #include <Adafruit_NeoPixel.h>
 #include <EEPROM.h>
-#define DEBUG 1 // debug mode with verbose output over serial at 115200 bps
+#define DEBUG 0 // debug mode with verbose output over serial at 115200 bps
 #define USE_EEPROM // read nodeID and network settings from EEPROM at bootup, overwrites nodeID and MAC.
 #define LEDPIN 6
-#define KEEPALIVE 0 // keep connections alive with regular polling to node 0
+#define KEEPALIVE 1 // keep connections alive with regular polling to node 0
 
 Adafruit_NeoPixel leds = Adafruit_NeoPixel(8, LEDPIN, NEO_GRB + NEO_KHZ800); // number of pixels in strip, pin number, pixel type flags
 
 RF24 radio(A0,10); // CE, CS. CE at pin A0, CSN at pin 10
 RF24Network network(radio); // mesh network layer 
 
-const unsigned long interval = 10000; // KEEPALIVE interval in [ms]
+const unsigned long interval = 30000; // KEEPALIVE interval in [ms]
 byte sweep=0;
 byte nodeID = 1; // Unique Node Identifier (2...254) - also the last byte of the IPv4 adress, not used if USE_EEPROM is set
 uint16_t this_node = 00; // always begin with 0 for octal declaration, not used if USE_EEPROM is set
@@ -89,12 +89,13 @@ void setup(void)
   colorWipe(leds.Color(0, 100, 0), 100); // Green
   colorWipe(leds.Color(0, 0, 100), 100); // Blue
   colorWipe(leds.Color(0, 0, 0), 0); // clear
-  ledst(1);
+  ledst(2);
   //  radio.printDetails(); // print NRF config registers. Does not work with NRF24network right now?!
 }
 
 void loop(void)
 {
+  ledst();
   network.update();
   updates++;
   while ( network.available() ) // while there are packets in the FIFO buffer
@@ -131,7 +132,7 @@ void loop(void)
   unsigned long nowM = micros();
   if ( now - last_time_sent >= interval ) // non-blocking check for start of debug service routine interval
   {
-    ledst(2);
+    ledst(1); //red
     /* // unsigned long int rollover checking:
      Serial.print(microsRollover()); // how many times has the unsigned long micros() wrapped?
      Serial.print(":"); //separator 
@@ -144,7 +145,7 @@ void loop(void)
     updates = 0;
     last_time_sent = now;
     if (KEEPALIVE) {
-      uint16_t to = 000;
+      uint16_t to = 00;
       bool ok = 0;
       if ( to != this_node)
       {
@@ -176,9 +177,7 @@ void loop(void)
          */
       }
     }
-    sweep+=20;
-    if (sweep>254) sweep=0;
-    /*
+   /*
     if ( this_node == 00){
       for (short _i=0; _i<num_active_nodes; _i++) {
         send_L1(active_nodes[_i],(byte) sweep&0xFF);
