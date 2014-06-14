@@ -14,9 +14,9 @@ static byte nodeID = wirelessID[1]; // range: 2-254
 static byte mac[] = { 0xAE, 0xAD, 0x42, 0x13, 0x37, nodeID }; // choose a unique MAC
 static byte ip[] = { 10, 0, 0, nodeID }; // your subnet IP scheme
 static byte gw[] = {10, 0, 0, 254}; // your gateway
+static byte role = 1; // hardware role: 0 = receiver, 1 = sender. Mostly used for debugging purposes.
 
-
-byte val[] = {nodeID, mac[0],mac[1],mac[2],mac[3],mac[4],mac[5],ip[0],ip[1],ip[2],ip[3],gw[0],gw[1],gw[2],gw[3],wirelessID[0],wirelessID[1]};
+byte val[] = {nodeID, mac[0],mac[1],mac[2],mac[3],mac[4],mac[5],ip[0],ip[1],ip[2],ip[3],gw[0],gw[1],gw[2],gw[3],wirelessID[0],wirelessID[1],role};
 
 int addr=0;
 void setup()
